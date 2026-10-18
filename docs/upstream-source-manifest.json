@@ -1,0 +1,601 @@
+{
+  "url": "https://anonymous.4open.science/api/repo/Cross-Tokenizer-OPD",
+  "paper": "https://arxiv.org/pdf/2610.08448v1",
+  "retrieved_utc": "2026-10-17T19:28:35.738288+00:00",
+  "identity_kind": "audited content snapshot assembled from public files; upstream commit unavailable",
+  "excluded": [
+    "data/",
+    "assets/"
+  ],
+  "source_manifest_sha256": "93cef1dfa18bcd5fc66cf80347557382efcd7e8955c3f6b464435711e82bf49b",
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 89,
+      "api_version_tag": "2e7be852",
+      "git_blob": "2727e1bf64e5fd3901d2803b1def32466a2e90bf",
+      "sha256": "19587f4a412fa284a0dac11bad5d487b92117390d1eb117aee094f6fb289ba0d"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2289,
+      "api_version_tag": "b260e71d",
+      "git_blob": "9ed1faf98032a99ac4f8dcaf3000e5e2d800fda1",
+      "sha256": "f45c1d25386d1d1a25f3c4ea4c152db95be6467f34c86a94ad52cda4df4ee656"
+    },
+    {
+      "path": "kdflow/__init__.py",
+      "bytes": 22,
+      "api_version_tag": "f8cbccf6",
+      "git_blob": "3dc1f76bc69e3f559bee6253b24fc93acee9e1f9",
+      "sha256": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed"
+    },
+    {
+      "path": "kdflow/algorithms/__init__.py",
+      "bytes": 520,
+      "api_version_tag": "a7cd7946",
+      "git_blob": "13dd1052857854aba08c5f7667ed6a49ff1b0b80",
+      "sha256": "8afbb4fadfc7db812d43ab35401971fc30fdc4810cafa81505cbea27178badbe"
+    },
+    {
+      "path": "kdflow/algorithms/byte_align_ctkd.py",
+      "bytes": 4552,
+      "api_version_tag": "990d76e2",
+      "git_blob": "c94a1239b57b05513ad853735291949aa314c6d9",
+      "sha256": "5c6647c6fb8064ffd5f7b1ed971168cd1f3392caee62e2d75916d41931828e18"
+    },
+    {
+      "path": "kdflow/algorithms/simple_ctkd.py",
+      "bytes": 8575,
+      "api_version_tag": "166783cd",
+      "git_blob": "57332b882e359ce1283a87f81949a5136f8c06a2",
+      "sha256": "fdbd99c55aeac4d061527158bdfc82a93333a42bf347eceaa134d34f5ef05952"
+    },
+    {
+      "path": "kdflow/algorithms/topk_byte_align_ctkd.py",
+      "bytes": 3448,
+      "api_version_tag": "4eff709a",
+      "git_blob": "64b49354bea827893fd49f8de51325666f7e1dba",
+      "sha256": "298925da4ce973b0f2917e5ba5ad2adbc4862d7c1a73515c5c86514ac0d22ddb"
+    },
+    {
+      "path": "kdflow/arguments/__init__.py",
+      "bytes": 13313,
+      "api_version_tag": "22b52ef5",
+      "git_blob": "b3c66702102a8691bcd16bc57f8a8307ccb13b68",
+      "sha256": "cafb17a195874f1b53b0b5f29b07840e1f2f6505e08dd77837fca25fd1a8122f"
+    },
+    {
+      "path": "kdflow/arguments/data_args.py",
+      "bytes": 3363,
+      "api_version_tag": "e8dc076d",
+      "git_blob": "12046f174777ed5d8f271b15661debf0b3c63003",
+      "sha256": "e5f68889ab6635ed51a285aad70dcff5de3dce7d7d06c6cf563b03331591a382"
+    },
+    {
+      "path": "kdflow/arguments/distillation_args.py",
+      "bytes": 5102,
+      "api_version_tag": "e7ae08cc",
+      "git_blob": "ae835897855f7e4147fb8efc1fe5971fd8cfb964",
+      "sha256": "65d39f6abeb75896864d385fe0c9a2f026938eb1a5ee9d4dc392d3cb86b440f4"
+    },
+    {
+      "path": "kdflow/arguments/fsdp_args.py",
+      "bytes": 387,
+      "api_version_tag": "172c1790",
+      "git_blob": "ed2729e8de9b94f789cd73ea1274e02bc4e18558",
+      "sha256": "10918e4e3242a526ab0926af4a2608a3a77dea058fd084ecee9022852aecac47"
+    },
+    {
+      "path": "kdflow/arguments/logging_args.py",
+      "bytes": 890,
+      "api_version_tag": "b3ce62d7",
+      "git_blob": "53e1413ef1c4b57d66b57a22c1c3c7022cf9d70a",
+      "sha256": "2d6012a164fdc81b3d9c482357dc68d0fe4485db0a2163f3cdfa3ca6411addc1"
+    },
+    {
+      "path": "kdflow/arguments/model_args.py",
+      "bytes": 1157,
+      "api_version_tag": "2f851242",
+      "git_blob": "9c6531d1deb2435054eeff4c412271149390b336",
+      "sha256": "b6da8907b70189acaa7c1b51544135e441182e28194ee3bbe4f23ec1fa23cb83"
+    },
+    {
+      "path": "kdflow/arguments/rollout_args.py",
+      "bytes": 4468,
+      "api_version_tag": "5899e45d",
+      "git_blob": "5b46da1da4da0f4a05a53aa14ef36167517784e4",
+      "sha256": "f9df7e87681abd88c00bde4985a45ddfbb3c6f3f7feee41d4fc941a808c670d1"
+    },
+    {
+      "path": "kdflow/arguments/training_args.py",
+      "bytes": 5880,
+      "api_version_tag": "b7d6b4ad",
+      "git_blob": "71443753b8ea33fd213a28c0744816c77b616600",
+      "sha256": "a45dd87ae3064eac14f9ca9a875963df4efd03082230aba9f4c98d67479260bd"
+    },
+    {
+      "path": "kdflow/backend/__init__.py",
+      "bytes": 647,
+      "api_version_tag": "33655f94",
+      "git_blob": "ae07fdf84af178d7d1b63e06abefb6f07f29e890",
+      "sha256": "b36cc114c0ffd20559a6e87808b158d7244566645933639023cf00019e03e137"
+    },
+    {
+      "path": "kdflow/backend/fsdp/__init__.py",
+      "bytes": 76,
+      "api_version_tag": "2c7e9bf6",
+      "git_blob": "a50fa8e305c891e9bfe23089b39c6f0555d473af",
+      "sha256": "9b1dffb545428c2862d6cc588507709797ba05f24d4017e9a450a7afa09701d9"
+    },
+    {
+      "path": "kdflow/backend/fsdp/fsdp_strategy.py",
+      "bytes": 26957,
+      "api_version_tag": "b0b88464",
+      "git_blob": "63498e48936f06180363b4df5c7fde821fa36a70",
+      "sha256": "8941ccc6077e6fdcc2a38c13769d6a0912dc764ea9f7b82866e7e1bf3bac0fa2"
+    },
+    {
+      "path": "kdflow/backend/sglang/__init__.py",
+      "bytes": 0,
+      "api_version_tag": null,
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "kdflow/backend/sglang/monkey_patch.py",
+      "bytes": 10707,
+      "api_version_tag": "154f0497",
+      "git_blob": "e4aa0a9550903f01a7125b1631408e9b2df6883a",
+      "sha256": "ddcbc908bce562bc3b87f13b8445ac02891a491dd60ba2edee37d6396440999c"
+    },
+    {
+      "path": "kdflow/backend/sglang/sglang_engine.py",
+      "bytes": 16531,
+      "api_version_tag": "b2ffd390",
+      "git_blob": "4deb3adfe2fa5b2258c0144ed46b4b4dc1873913",
+      "sha256": "dd0b9a5531beba14c52389787a1df5d053412dabd9547cde5cb66f5f23bb494f"
+    },
+    {
+      "path": "kdflow/cli/__init__.py",
+      "bytes": 0,
+      "api_version_tag": null,
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "kdflow/cli/evaluate_alfworld.py",
+      "bytes": 4054,
+      "api_version_tag": "c6740670",
+      "git_blob": "77dec216fbfc0b68f28a094b6fdeac63f1f6a646",
+      "sha256": "f5b02bf943606ff7d01feff0c8df9eb5a5902a7c0039d38e3a21c859716bf08e"
+    },
+    {
+      "path": "kdflow/cli/train_kd_off_policy.py",
+      "bytes": 5879,
+      "api_version_tag": "c4023313",
+      "git_blob": "b149c801a94aedc0234c529cbdc63764de08573f",
+      "sha256": "b3064a2f38c12bf086c5f783b0dcfb3904ff097e99289aca2a1da310d81713cc"
+    },
+    {
+      "path": "kdflow/cli/train_kd_on_policy.py",
+      "bytes": 8208,
+      "api_version_tag": "c50095ea",
+      "git_blob": "8cfb58d743568948cfa7d1c1e579be7287057241",
+      "sha256": "1e2036bf1b788d7f7b27ac3496d50b78c25992ae597733199bfb90619cf6391f"
+    },
+    {
+      "path": "kdflow/datasets/__init__.py",
+      "bytes": 216,
+      "api_version_tag": "fc482f85",
+      "git_blob": "37facfbdb6705166c7047e40eb67bb1f3edbf3e9",
+      "sha256": "2dd709d632fae96f3e8d86ffb8b608cdca9edaacd17dde7c21eed1c497379d37"
+    },
+    {
+      "path": "kdflow/datasets/alfworld_dataset.py",
+      "bytes": 806,
+      "api_version_tag": "4f86ac77",
+      "git_blob": "cd96f6d2932f6e2cd31c6e4cab188556206abbef",
+      "sha256": "3047bf9576937e1cbc3dd7d7070c7c949ac0e96ecb0b1bf8b6142c7c0415b88b"
+    },
+    {
+      "path": "kdflow/datasets/prompts_dataset.py",
+      "bytes": 11012,
+      "api_version_tag": "9c932cbd",
+      "git_blob": "15a6e747c6cc3fd3232affcdff8f1252ac087ee9",
+      "sha256": "3e6b9954b893224a5eac5ad79758dc198747b929e1fe27475e6aed1f01a09703"
+    },
+    {
+      "path": "kdflow/datasets/sft_dataset.py",
+      "bytes": 18029,
+      "api_version_tag": "23c3e648",
+      "git_blob": "6b922b0047e0d1da1e9f95f0c2b9a078f3ef92a8",
+      "sha256": "e5643660828193e4a124639d18d1ac14826d57203dcc3ccf31e2c7d83a37c7b7"
+    },
+    {
+      "path": "kdflow/datasets/utils.py",
+      "bytes": 14066,
+      "api_version_tag": "6fe0c9b3",
+      "git_blob": "9933ae47766e3623d148e39fa7817cefd112133d",
+      "sha256": "f0173126a8530665226396c7e9343f57cc031e4df1d97929ba6c3b360059bbb3"
+    },
+    {
+      "path": "kdflow/evaluation/__init__.py",
+      "bytes": 344,
+      "api_version_tag": "a3dca82f",
+      "git_blob": "245e0251fb5e37de3cc7c2a234bff53a732e41de",
+      "sha256": "f63f24ca9885b63c32d3d1e24b40c16367734cb238f52b4893b20be95321573c"
+    },
+    {
+      "path": "kdflow/evaluation/alfworld_evaluator.py",
+      "bytes": 6661,
+      "api_version_tag": "beaf919e",
+      "git_blob": "7e085a7350f8a07cd3b1cefcbe12c2eab7733d45",
+      "sha256": "45c96b0908cf0bd895cd312e88ca8bd49a53be3f00cf9fa4363555590d03352b"
+    },
+    {
+      "path": "kdflow/evaluation/math_evaluator.py",
+      "bytes": 12096,
+      "api_version_tag": "5cc9a5e1",
+      "git_blob": "890e7ed2e1fe006d1e65d3a35d398297fb2fb70f",
+      "sha256": "f598d470e1f03c0e09b6bbdb4d7fa8571eb7484f14f2be7ea706a0ed14aa8935"
+    },
+    {
+      "path": "kdflow/evaluation/verl_agent_alfworld_evaluator.py",
+      "bytes": 16963,
+      "api_version_tag": "1391ea50",
+      "git_blob": "f9a25e4e331f5a9dd3aad873666bb0861347453a",
+      "sha256": "38d71145e80de82fe738599f43dfe8b3cb14177da4784457546e6be18f78fc29"
+    },
+    {
+      "path": "kdflow/evaluation/verl_agent_alfworld_protocol.py",
+      "bytes": 3001,
+      "api_version_tag": "a8cc4e01",
+      "git_blob": "38615c951dd17f8311216b640cc2bd0ae145291a",
+      "sha256": "9aa3c5f02703148a0bfce8d2177b53e51aa906df03e2401e5bf0f5b241ce8433"
+    },
+    {
+      "path": "kdflow/loss/__init__.py",
+      "bytes": 1089,
+      "api_version_tag": "6e9b5e28",
+      "git_blob": "2d66850c7da1a6839a2d69b781980469ea85cd2b",
+      "sha256": "3bc98a351ad62faa346607502dcd56e864536b81877ca0221fd2b2ca9045f630"
+    },
+    {
+      "path": "kdflow/loss/adaptive_kl_div.py",
+      "bytes": 1528,
+      "api_version_tag": "7af71dea",
+      "git_blob": "e95f03d7900fd29f1ff5d1b64bf1d670a3267410",
+      "sha256": "f8a44824867ae3fa7e732f7ae5554d6b13231ff9545e1fd61793a8f546d7d39c"
+    },
+    {
+      "path": "kdflow/loss/chunked_loss.py",
+      "bytes": 3636,
+      "api_version_tag": "8a38a29a",
+      "git_blob": "2c5174fd3c60c92ea8e315fb1ce28931eb7e61ae",
+      "sha256": "151c81614f97b908465a952f595abe1f4dc5c0d17cea86431a7068c381125cc5"
+    },
+    {
+      "path": "kdflow/loss/cross_entropy.py",
+      "bytes": 473,
+      "api_version_tag": "9fab6f38",
+      "git_blob": "9f5a322ff489503f707515aa8f8e413ef1083b6b",
+      "sha256": "e3629bef7c50c737f384870876321c953ceb09b67c275242cdbfcfbcbca68377"
+    },
+    {
+      "path": "kdflow/loss/hierarchical_ranking_loss.py",
+      "bytes": 1479,
+      "api_version_tag": "19217f5e",
+      "git_blob": "8e6ea5c38676ca63011834431955852055a78af5",
+      "sha256": "2cced8cccf77872ab817164a931c97c43c7411b8d59cc48d842111e40f021ac3"
+    },
+    {
+      "path": "kdflow/loss/js_div.py",
+      "bytes": 1165,
+      "api_version_tag": "8c85586a",
+      "git_blob": "1d210762db1d64e5ee8d8cd4bff9ee60499950e8",
+      "sha256": "be71370e1e1a2c109c2a00a4e6daaece8ab17f182f1a3f03c60a385b98fb3078"
+    },
+    {
+      "path": "kdflow/loss/kl_div.py",
+      "bytes": 592,
+      "api_version_tag": "7bc61a88",
+      "git_blob": "c39542e7a839837741d0fc442ba5bb18fc5a6343",
+      "sha256": "b361ddca392ee4b2e83e44b6891f4402f86127db38b6e254d492d29c48950a7c"
+    },
+    {
+      "path": "kdflow/loss/reverse_kl_div.py",
+      "bytes": 761,
+      "api_version_tag": "5afd030a",
+      "git_blob": "ebdaa8f2a467e41383825915e6a757de2426738c",
+      "sha256": "abca69fdbe4f7d90a7ca990300189147230cce8f20d589c934d88f0b63c4edf6"
+    },
+    {
+      "path": "kdflow/loss/skewed_kl_div.py",
+      "bytes": 1119,
+      "api_version_tag": "737302c8",
+      "git_blob": "4b76d83f474a2744c81b12a717cae97ea97dccca",
+      "sha256": "98189a13bf644d3c46d53aa228a264b9ed666b9d28586a343f0c2bdbd6fed091"
+    },
+    {
+      "path": "kdflow/loss/skewed_rkl_div.py",
+      "bytes": 1129,
+      "api_version_tag": "c37538a3",
+      "git_blob": "9652791e8f1ff0159eb9826ed70ac16057b511cf",
+      "sha256": "3c78a1b04270f7d8ed40449f28f5ed936af71c0bc7d5a0badf0864454ddf66f0"
+    },
+    {
+      "path": "kdflow/loss/top1_ce.py",
+      "bytes": 760,
+      "api_version_tag": "3cc13dae",
+      "git_blob": "6a07fefbc642c79a4311c3f3d3565ee2b3bec251",
+      "sha256": "1f566c4559f518c8186a53de85593b812e65016beab083cd4ded715b513fa760"
+    },
+    {
+      "path": "kdflow/loss/tvd.py",
+      "bytes": 702,
+      "api_version_tag": "289a1332",
+      "git_blob": "a84bee8f7963da36e7e4011a0dd3af9d9e87d462",
+      "sha256": "964d872f122ec4618cfee1fd2adf8ecc0fc82a8279cce83cab8b277335f8aa2c"
+    },
+    {
+      "path": "kdflow/metrics/__init__.py",
+      "bytes": 82,
+      "api_version_tag": "4c09b5e4",
+      "git_blob": "e888dd4bdc45ae4e2be5225b6c74ae17480225a8",
+      "sha256": "140c40cfb0b374c62847a93f666c9cf0c3ad595d6d36dc7bb1e6c2fb05495362"
+    },
+    {
+      "path": "kdflow/metrics/entropy.py",
+      "bytes": 642,
+      "api_version_tag": "c37c9989",
+      "git_blob": "81439fc696793032bce83717db7ccb17243d8d9a",
+      "sha256": "e02d0a9926fdb33b120fc2ec0a95d042876b43504046a301191d4761cee58cef"
+    },
+    {
+      "path": "kdflow/models/__init__.py",
+      "bytes": 67,
+      "api_version_tag": "39b9dcda",
+      "git_blob": "8f60ffe38287f99a5fe053daf17f85b5173d07a7",
+      "sha256": "93370fd72c3d337adcb1bb7cbae6ba2cf9eab2ef49b5b466ada816f7b6bbd148"
+    },
+    {
+      "path": "kdflow/models/model.py",
+      "bytes": 5150,
+      "api_version_tag": "49c34f8e",
+      "git_blob": "df455afaca9a0eaaac7d7cc9836acb9f0dc1dbee",
+      "sha256": "2530323bba13319cea6ea6f0ea54ed64ae81d35c6a2aaf209688a67622e26996"
+    },
+    {
+      "path": "kdflow/models/ring_attn_utils.py",
+      "bytes": 7402,
+      "api_version_tag": "0c072a92",
+      "git_blob": "fe3b01a70d20358de0dc19e19ce09df306004d26",
+      "sha256": "ed93df4cbef484401f2cf508bc81d4a22521e632bec4bae4a931e404639b7eda"
+    },
+    {
+      "path": "kdflow/models/utils.py",
+      "bytes": 1755,
+      "api_version_tag": "cfd2ac62",
+      "git_blob": "5f00ba4aaf5b007c20e4fb7cb08b5e466a2acef5",
+      "sha256": "cfef9ca657b32c8ee5688f01f0f1e939ec3fc61fbd8792085d63af66f74e85d5"
+    },
+    {
+      "path": "kdflow/ray/__init__.py",
+      "bytes": 0,
+      "api_version_tag": null,
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "kdflow/ray/placement_group.py",
+      "bytes": 2049,
+      "api_version_tag": "37beb550",
+      "git_blob": "24ba3109273257b3ab9329a19dc72804bbc5edc3",
+      "sha256": "08b0a5d82cacea096b1591e3d12d25f30f285145cade451578763f3b16144a27"
+    },
+    {
+      "path": "kdflow/ray/rollout/__init__.py",
+      "bytes": 176,
+      "api_version_tag": "ae57ecf3",
+      "git_blob": "a7e39d7a3785301ef2f0614ad28880e2f7dfc1cc",
+      "sha256": "13401bf88cab65c4e388736c19f4ff2df16fc2a8ff9cbc07a1b48c76876092de"
+    },
+    {
+      "path": "kdflow/ray/rollout/rollout_actor.py",
+      "bytes": 12933,
+      "api_version_tag": "635eb232",
+      "git_blob": "63a00bc4e29afbb2041ee99ac2c63fa5b3aa1d4f",
+      "sha256": "14af615c89f8c8c6089ed5e98a5473da0ab79df4771621e5becc4340ff3720bc"
+    },
+    {
+      "path": "kdflow/ray/rollout/rollout_group.py",
+      "bytes": 14618,
+      "api_version_tag": "7a452703",
+      "git_blob": "5ad5ec900fe03de4c6e7201791f8be76315a3ce9",
+      "sha256": "05b9235ba2da6259a49979514b6ac3910a500be4f8c0575461d3d9997959ed9b"
+    },
+    {
+      "path": "kdflow/ray/train/__init__.py",
+      "bytes": 0,
+      "api_version_tag": null,
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "kdflow/ray/train/student_actor.py",
+      "bytes": 18702,
+      "api_version_tag": "857338dd",
+      "git_blob": "0aec3b65c4423b554ae2fdd4fee3b02d64011e78",
+      "sha256": "b234fee1e64e1b59f45d917faa1435cf911619fbaf1b581530996df2244b14eb"
+    },
+    {
+      "path": "kdflow/ray/train/student_group.py",
+      "bytes": 9563,
+      "api_version_tag": "5f558d33",
+      "git_blob": "cc9308ae81028870f2a47d70dadaaa443794070d",
+      "sha256": "c9b661647d781e3353821fce0f15c1be69f10d81a55ced07523635d52b0f04e4"
+    },
+    {
+      "path": "kdflow/ray/train/teacher_actor.py",
+      "bytes": 7299,
+      "api_version_tag": "cdf12732",
+      "git_blob": "72600b4ec71cc27acc19bc3f8333410b9784f754",
+      "sha256": "8e84664647c5c1f4d2a3bf000d3e382bfcbe3735f42bef2f7b0f0af43518974e"
+    },
+    {
+      "path": "kdflow/ray/train/teacher_group.py",
+      "bytes": 12590,
+      "api_version_tag": "83cd153b",
+      "git_blob": "b121a64b7519f2866d21e8e2d2c208c0052f5826",
+      "sha256": "b0a632619940e8fb49f4b5059299f0d380fe9d4b1bd9c26c7c82dff32e50f7ba"
+    },
+    {
+      "path": "kdflow/ray/utils.py",
+      "bytes": 2590,
+      "api_version_tag": "9f91e927",
+      "git_blob": "b003f49102a84c9ce15e617abb33fa4842286fcc",
+      "sha256": "8dea4c2b6b55445ad6d8868807ca016b61f6f7e12efb321502dc8b6eb2ea0263"
+    },
+    {
+      "path": "kdflow/token_alignment.py",
+      "bytes": 13436,
+      "api_version_tag": "8766c5ad",
+      "git_blob": "5a2b1695191df2aaa7798e8cbb0605858775474b",
+      "sha256": "c77cd962cb0430cd97ace5312077e847398a03da3ce1473062fd2c5c9808498a"
+    },
+    {
+      "path": "kdflow/trainer/__init__.py",
+      "bytes": 528,
+      "api_version_tag": "6dec2a62",
+      "git_blob": "c7fa5b1ce3c01a42c60f2f070370cd978a73710b",
+      "sha256": "a3caa9361a9f53b881e24ffa05951342278947135cd51c637ba4d1b16a1a8687"
+    },
+    {
+      "path": "kdflow/trainer/alfworld_rollout_manager.py",
+      "bytes": 18875,
+      "api_version_tag": "a77bc558",
+      "git_blob": "9e353bcbfd9cb9424f2110f3cf1c9e4b2ff496ff",
+      "sha256": "93f6ca98f2ba6fe9613d60839eb7d22d6b582420489aefbc1f6364ffb8493987"
+    },
+    {
+      "path": "kdflow/trainer/data_processor/__init__.py",
+      "bytes": 122,
+      "api_version_tag": "d5140e99",
+      "git_blob": "d267c43e5cf7c929a03867968ff8c794a5a574bf",
+      "sha256": "66a34ffc421ade775f246c8198bfdc9633e83c97b355084fa457e6e15695b775"
+    },
+    {
+      "path": "kdflow/trainer/data_processor/rollout_data_processor.py",
+      "bytes": 13871,
+      "api_version_tag": "3b4b701b",
+      "git_blob": "7f5564dcd3046b5be30cbabc13b06c3dd393c17a",
+      "sha256": "fe720ee01fb821e124a612dcb55cb0e827b64e7fb1597b4ecbb4bf14c8ee5792"
+    },
+    {
+      "path": "kdflow/trainer/off_policy_kd_trainer.py",
+      "bytes": 14023,
+      "api_version_tag": "f150d881",
+      "git_blob": "72ab1017c9edfbf90778208b9d01ca123d1d72ee",
+      "sha256": "6b4019e9760e0f2898a4cf0b30071d69bf24b6a23a023aca5f1f929b2a0c2acf"
+    },
+    {
+      "path": "kdflow/trainer/on_policy_kd_trainer.py",
+      "bytes": 20980,
+      "api_version_tag": "f34b6551",
+      "git_blob": "aa4ba8e05f8fc49625b69b8870fc29a8aa6aa6c6",
+      "sha256": "f7b20000d435f8fc43a07584a3025472f138ccc6e41f62f25c08ff9ff8fa17b1"
+    },
+    {
+      "path": "kdflow/trainer/rollout_manager.py",
+      "bytes": 6718,
+      "api_version_tag": "f6b74523",
+      "git_blob": "0eb5253bceb3a06a66cf120a606a221db3a07f81",
+      "sha256": "e930b4db59e8f8e09e04838141854403f5516ac8492ef4ab0bd7f37611db7009"
+    },
+    {
+      "path": "kdflow/trainer/verl_agent_alfworld_rollout_manager.py",
+      "bytes": 22589,
+      "api_version_tag": "db6881e8",
+      "git_blob": "430dd71f2979174e05b61d276b4e29d068adc864",
+      "sha256": "ea95c95d7c3d8dbcc4da1b578877684a4dcea3e30bf6b68ea98187432194a040"
+    },
+    {
+      "path": "kdflow/utils/__init__.py",
+      "bytes": 69,
+      "api_version_tag": "5eaed800",
+      "git_blob": "1431283d595d0062ee042ea5567c33aec00ad49b",
+      "sha256": "9ed449850c624d587592f92760c79c55324063a7cc16fbfa5aab42585165afb1"
+    },
+    {
+      "path": "kdflow/utils/distributed_sampler.py",
+      "bytes": 6482,
+      "api_version_tag": "a82f95b2",
+      "git_blob": "1f7658202804e2a1fbe1a5d0d6ddaf20cc50f3af",
+      "sha256": "5a099195c63e475f42fd17e43b4c40ed1133ac3237f623410befffcc9005cda7"
+    },
+    {
+      "path": "kdflow/utils/distributed_util.py",
+      "bytes": 1077,
+      "api_version_tag": "85f4398a",
+      "git_blob": "fd13702ebaa1d34fc1bf87d7c506847af3f7190d",
+      "sha256": "6a7850b1490c9122f08384eab1343c908cf526af1fcb997b8898d92325edaf98"
+    },
+    {
+      "path": "kdflow/utils/dynamic_bsz.py",
+      "bytes": 15227,
+      "api_version_tag": "bcd5639b",
+      "git_blob": "44ec3b3a8d3e7f423f3a68b951b7285c463c567b",
+      "sha256": "a11fa6064f980d2e614705c9571401de4f18b21e3bbc35a3d69cd7f2ecf4ae9b"
+    },
+    {
+      "path": "kdflow/utils/logging_utils.py",
+      "bytes": 3471,
+      "api_version_tag": "80b625a3",
+      "git_blob": "1393d26d3e95e7ac447bda58242866dac96d2af0",
+      "sha256": "e57a5e3bd3df172bb147dfc599f377748e3564de81b800ce365b7a336be89302"
+    },
+    {
+      "path": "kdflow/utils/multimodal_utils.py",
+      "bytes": 1073,
+      "api_version_tag": "da5520e7",
+      "git_blob": "60acb817ed6ce60fda693c80ec1295376c15b10b",
+      "sha256": "8b16f06ea69d3c4b2cfb17bb8cb215652350e0aa0548e9f06d07950c07aa34bf"
+    },
+    {
+      "path": "kdflow/utils/utils.py",
+      "bytes": 3290,
+      "api_version_tag": "3654028c",
+      "git_blob": "26415ed5185e779a2945b98fa6f368a726dd286d",
+      "sha256": "b4daa8b9e9b405dd330ef3d39d03cc4dac108c05b0012e145fb14baad664fbc9"
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 730,
+      "api_version_tag": "4c685d0b",
+      "git_blob": "dd4bfd646653bdc98b8f1bc8aa753a996932166c",
+      "sha256": "fb40bc75b604b76e4bc9f5406b1e5fb4721daf4d090543bab430adf4aaaa30f3"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 6762,
+      "api_version_tag": "ea4b60ca",
+      "git_blob": "678e55b3cd878b4364ed7bd9d54ac1cf2058af80",
+      "sha256": "d4d536aafbe5889185058299ec9deb27ab4903dba3686a14734587703adb2f3f"
+    },
+    {
+      "path": "run/byte_align_ctkd/qwen25_7b_to_llama32_3b_byte_align_ctkd.sh",
+      "bytes": 2414,
+      "api_version_tag": "a6482a95",
+      "git_blob": "c778963c3e42749205a2fc9b0208bfb076a48180",
+      "sha256": "4982257e528fbe508d180172aa81e85e761cbc15328ec2ddc33b7feda42bd2e4"
+    },
+    {
+      "path": "run/topk_byte_align_ctkd/qwen25_7b_to_llama32_3b_topk_byte_align_ctkd.sh",
+      "bytes": 2451,
+      "api_version_tag": "bb390a7d",
+      "git_blob": "2997aaaebae9914d30b62cca821bce7ceef7818d",
+      "sha256": "2f297f306ff7f91d5902cc039bea87cf43474127d6e7598ff50053c5d66551a1"
+    }
+  ]
+}
