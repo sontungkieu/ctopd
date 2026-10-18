@@ -19,6 +19,21 @@ cp ensure_runtime.sh "$ROOT/ensure_runtime.sh"  # run once from this checkout
 bash "$ROOT/ensure_runtime.sh"
 ```
 
+Alternatively, download the same standalone helper through the public HF mirror without GitHub authentication (no runtime archive download is repeated):
+
+```bash
+set -euo pipefail
+cd /workspace/storage-shared/nlp/tungks/ctopd_all
+PROXY="${HTTPS_PROXY:-${HTTP_PROXY:-http://10.30.154.118:80}}"
+BASE=https://huggingface.co/datasets/codemaivanngu/cross-tokenizer-opd-b200-runtime/resolve/b5bbaea5025b8f58ef93386a5a5ac2f37058f51c
+curl -fL --retry 3 --proxy "$PROXY" --noproxy "" "$BASE/ensure_runtime.sh" -o ensure_runtime.sh
+curl -fL --retry 3 --proxy "$PROXY" --noproxy "" "$BASE/ensure_runtime.SHA256SUMS" -o ensure_runtime.SHA256SUMS
+sha256sum -c ensure_runtime.SHA256SUMS
+bash ensure_runtime.sh
+```
+
+Published helper SHA-256: `9a388b3ca183e0e771a49bdc4b61d9c6880d043da5490122c8fdf4098c3b9895`. Anonymous HF download was checked against the committed source; this verifies delivery, not execution on the company node.
+
 Run the last line on each new node, inside a pod exposing the one B200 allocated for this check. With no GPU allocated yet, use `--install-only`; it reports `RUNTIME_INSTALLED_UNCHECKED`, not GPU readiness. With an existing runtime, `--check-only` checks without extracting. `--help` lists options.
 
 The helper automatically finds either `$ROOT/ctopd-b200-cu129-v4/runtime.tar.gz` (the manually downloaded shard layout) or `$ROOT/runtime.tar.gz`. It verifies the pinned archive size/SHA-256 before extraction, checks Linux/glibc/g++, extracts safely to a new staging directory under the target filesystem, then renames to the final prefix. Allow at least 45 GiB free on that node-local filesystem. It never downloads dependencies, builds a runtime, launches training, or replaces an existing runtime that it cannot identify. Failed extraction keeps staging evidence. If `/opt` is not writable, choose an explicit node-local location:
