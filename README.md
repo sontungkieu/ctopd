@@ -1,8 +1,18 @@
-# Cross-Tokenizer-OPD
+# ctopd
+
+Development repository for `sontungkieu`, imported from the authors' [Cross-Tokenizer-OPD code](https://anonymous.4open.science/r/Cross-Tokenizer-OPD/) for [arXiv:2610.08448v1](https://arxiv.org/abs/2610.08448v1). This is an independent working copy; the original authors retain authorship of the imported implementation.
+
+The initial import preserves 84 source/configuration files. See [upstream provenance](docs/UPSTREAM.md) and the exact [file hashes](docs/upstream-source-manifest.json). Dataset and figure directories were excluded from this source snapshot. Model weights, datasets, runtime archives and experiment outputs belong outside Git.
+
+Start editing directly in `kdflow/algorithms/`, `kdflow/token_alignment.py`, `kdflow/trainer/`, and `run/`. The two example launchers use **Qwen2.5-7B-Instruct -> Llama-3.2-3B-Instruct on 8 GPUs**; update paths and qualify the requested topology before training.
+
+Use the existing [qualified B200 runtime on Hugging Face](https://huggingface.co/datasets/codemaivanngu/cross-tokenizer-opd-b200-runtime) with a source overlay rather than reinstalling dependencies after each code edit. See [B200 development instructions](docs/RUNTIME_B200.md).
+
+## Original project documentation
 
 This repository provides the implementation and example training scripts for `byte_align_ctkd` and `topk_byte_align_ctkd`.
 
-![Overview of cross-tokenizer alignment during training, the effect of mismatch supervision, and shared-vocabulary probability mass](assets/overview.png)
+The overview figure is available in the [original repository](https://anonymous.4open.science/r/Cross-Tokenizer-OPD/README.md); assets are not included in this source import.
 
 ## Environment
 
@@ -32,7 +42,7 @@ Before running, update the paths in each script or mount the files at the expect
 - Training data: `/workspace/data/Train/math_code_20k/train.parquet`
 - Evaluation data: `/workspace/data/math500/test.jsonl`
 
-The data files are included under `data/`; model checkpoints must be provided separately. WandB logging is disabled by default (`--use_wandb False`). To enable it, set `--use_wandb True`, add `--wandb_project <project_name>`, and configure your WandB account.
+The original repository provides data under `data/`; this source-only import excludes that directory. Prepare data and model checkpoints separately at the runtime host, then update the paths above. WandB logging is disabled by default (`--use_wandb False`). To enable it, set `--use_wandb True`, add `--wandb_project <project_name>`, and configure your WandB account.
 
 Run the byte-alignment example from the repository root:
 
