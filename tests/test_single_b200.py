@@ -67,7 +67,7 @@ class LauncherTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.plan('--run-id', '../other-run')
         with tempfile.TemporaryDirectory() as folder:
-            plan = self.plan('--root', folder)
+            plan = self.plan('--root', folder, '--runtime', str(pathlib.Path(folder) / 'runtime'))
             for key in ['student_name_or_path', 'teacher_name_or_path']:
                 model = pathlib.Path(plan['flags'][key])
                 model.mkdir(parents=True)

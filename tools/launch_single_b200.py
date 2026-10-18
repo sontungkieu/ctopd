@@ -23,7 +23,8 @@ def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--root', type=pathlib.Path,
                    default=pathlib.Path('/workspace/storage-shared/nlp/tungks/ctopd_all'))
-    p.add_argument('--runtime', type=pathlib.Path, help='Installed prefix containing python-b200.sh')
+    p.add_argument('--runtime', type=pathlib.Path,
+                   help='Installed prefix; default CTOPD_RUNTIME_PREFIX or /opt/ctopd-b200')
     p.add_argument('--algorithm', choices=['strict-top16', 'strict-full'], default='strict-top16')
     p.add_argument('--seed', type=int, default=42, help='Original launcher default, not a verified paper seed')
     p.add_argument('--micro-batch', type=int, choices=[1, 2, 4], default=4,
@@ -43,7 +44,7 @@ def build_plan(args):
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,95}', run_id):
         raise ValueError('run-id must be a single directory name starting with a letter or digit')
     root = args.root.expanduser().resolve()
-    runtime = (args.runtime or root / 'runtime').expanduser().resolve()
+    runtime = (args.runtime or pathlib.Path(os.environ.get('CTOPD_RUNTIME_PREFIX', '/opt/ctopd-b200'))).expanduser().resolve()
     output = root / 'runs' / run_id
     flags = {
         'num_nodes': 1, 'num_gpus_per_node': 1, 'backend': 'fsdp2',

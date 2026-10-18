@@ -42,14 +42,14 @@ CPU RAM and `/dev/shm` also matter: the teacher forwards a whole rollout batch a
 With `ROOT=/workspace/storage-shared/nlp/tungks/ctopd_all`, prepare:
 
 ```text
-$ROOT/runtime/python-b200.sh
+/opt/ctopd-b200/python-b200.sh          # node-local; restore using ensure_runtime.sh
 $ROOT/models/Qwen2.5-7B-Instruct/       # complete official HF snapshot + tokenizer
 $ROOT/models/Llama-3.2-3B-Instruct/     # complete official HF snapshot + tokenizer
 $ROOT/data/Train/math_code_20k/train.parquet
 $ROOT/data/math500/test.jsonl
 ```
 
-Use `--runtime /actual/installed/prefix` if the runtime was installed elsewhere. The runtime tar.gz alone is not an installed prefix. Models/data must be downloaded directly on the runtime host; the Llama HF token must belong to an account with approved model access.
+The launcher defaults to `CTOPD_RUNTIME_PREFIX` when set, otherwise `/opt/ctopd-b200`. Use `--runtime /actual/installed/prefix` for an existing alternative installation, including the earlier `$ROOT/runtime` layout. Run the [runtime restore/check helper](RUNTIME_B200.md) on every new node. The runtime tar.gz alone is not an installed prefix. Models/data must be downloaded directly on the runtime host; the Llama HF token must belong to an account with approved model access.
 
 ## Print the complete plan, then run it unchanged
 
