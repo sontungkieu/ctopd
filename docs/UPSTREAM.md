@@ -8,7 +8,7 @@
 - The source service did not expose an upstream Git commit. The local import commit starts a new history and does not claim to preserve upstream Git history.
 - `docs/upstream-source-manifest.json` records original byte sizes and hashes. It describes the initial import; later development commits may intentionally change those files.
 
-The initial commit preserves the imported implementation. Subsequent setup changes update documentation and line-ending attributes only. Datasets and figures were excluded from the source snapshot, and no runtime archives, model weights, credentials, account metadata or experiment outputs are included.
+The initial commit preserves the imported implementation. Local additions provide documentation, line-ending attributes, a single-B200 launcher and its offline tests. Imported `kdflow/` code and the two original training scripts remain unchanged. Datasets and figures were excluded from the source snapshot, and no runtime archives, model weights, credentials, account metadata or experiment outputs are included.
 
 ## License metadata
 

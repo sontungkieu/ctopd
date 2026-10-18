@@ -8,6 +8,8 @@ Start editing directly in `kdflow/algorithms/`, `kdflow/token_alignment.py`, `kd
 
 Use the existing [qualified B200 runtime on Hugging Face](https://huggingface.co/datasets/codemaivanngu/cross-tokenizer-opd-b200-runtime) with a source overlay rather than reinstalling dependencies after each code edit. See [B200 development instructions](docs/RUNTIME_B200.md).
 
+For a full-workload, one-run-per-B200 adaptation, use [the single-B200 launcher](docs/SINGLE_B200.md). It keeps 512-response rollout/optimizer batches, 8,192 generated tokens, 100 training iterations and 32-sample MATH500 evaluation. There is no reduced-workload mode. Single-B200 full training and paper metric agreement remain unvalidated.
+
 ## Original project documentation
 
 This repository provides the implementation and example training scripts for `byte_align_ctkd` and `topk_byte_align_ctkd`.
