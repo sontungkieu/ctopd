@@ -5,6 +5,10 @@ from typing import Optional
 @dataclass
 class RolloutArguments:
     """ Arguments for rollout (on-policy distillation)."""
+
+    def __post_init__(self):
+        if self.eval_math_top_p is not None and not 0 < self.eval_math_top_p <= 1:
+            raise ValueError('eval_math_top_p must be in (0,1] or None')
     
     rollout_num_engines: int = field(
         default=0,
@@ -30,6 +34,7 @@ class RolloutArguments:
         default=1.0,
         metadata={"help": "Top-p sampling for rollout."}
     )
+    eval_math_top_p: float = field(default=None, metadata={'help':'MATH sampling top-p; None inherits rollout top_p.'})
     temperature: float = field(
         default=1.0,
         metadata={"help": "Temperature for rollout."}

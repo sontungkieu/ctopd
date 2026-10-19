@@ -23,7 +23,7 @@ class DistillationArguments:
         default="byte_align_ctkd",
         metadata={
             "help": "KD algorithm for each training step.",
-            "choices": ["simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", "simct", "simct_paper", *MP_OPD_ALGORITHMS],
+            "choices": ["simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", "simct", "simct_paper", "h1b_span", *MP_OPD_ALGORITHMS],
         }
     )
     kd_loss_fn: str = field(
@@ -132,18 +132,37 @@ class DistillationArguments:
     mp_opd_trust_eps_g: float = field(default=1e-12)
     mp_opd_trust_vocab_chunk: int = field(default=4096)
 
+    h1b_arm: str = field(default='a', metadata={'choices':['a','b','b_bl','c_str','c']})
+    h1b_span_lambda: float = field(default=0.5)
+    h1b_log_sample_rate: float = field(default=0.05)
+    h1b_dump_every: str = field(default='0,20,60,100')
+
     def __post_init__(self):
         if self.multi_teacher_config is not None:
             raise ValueError(
                 "This release supports one teacher model per run; "
                 "use --teacher_name_or_path instead of --multi_teacher_config."
             )
-        supported_algorithms = {"simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", "simct", "simct_paper", *MP_OPD_ALGORITHMS}
+        supported_algorithms = {"simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", "simct", "simct_paper", "h1b_span", *MP_OPD_ALGORITHMS}
         if self.kd_algorithm not in supported_algorithms:
             raise ValueError(
                 f"kd_algorithm must be one of {sorted(supported_algorithms)}, "
                 f"got {self.kd_algorithm!r}."
             )
+        if self.kd_algorithm == 'h1b_span':
+            if self.kd_ratio!=1 or self.kd_temperature!=1 or self.kd_loss_fn!='rkl':
+                raise ValueError('H1b requires kd_ratio=1, kd_temperature=1, kd_loss_fn=rkl')
+            if self.h1b_arm not in {'a','b','b_bl','c_str','c'}:
+                raise ValueError('Invalid H1b arm')
+            if not math.isfinite(self.h1b_span_lambda) or self.h1b_span_lambda<0:
+                raise ValueError('Invalid H1b span lambda')
+            if not math.isfinite(self.h1b_log_sample_rate) or not 0<=self.h1b_log_sample_rate<=1:
+                raise ValueError('Invalid H1b sample rate')
+            try:
+                steps=[int(s) for s in self.h1b_dump_every.split(',') if s.strip()]
+            except ValueError as error:
+                raise ValueError('H1b dump steps must be comma-separated integers') from error
+            if any(s<0 for s in steps): raise ValueError('Negative H1b dump step')
         if self.kd_algorithm in {'simct','simct_paper'}:
             if self.kd_ratio != 1 or self.kd_temperature != 1 or self.kd_loss_fn != 'rkl':
                 raise ValueError('SimCT baseline requires kd_ratio=1, kd_temperature=1, kd_loss_fn=rkl')

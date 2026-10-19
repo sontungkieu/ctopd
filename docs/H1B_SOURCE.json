@@ -1,0 +1,121 @@
+{
+  "input_plans": [
+    {
+      "name": "Implementation Plan",
+      "sha256": "d99aad05f79545931f051601414eaa8b736a871a226cb898f8d4ef1f3ee24d32"
+    },
+    {
+      "name": "Experiment Design",
+      "sha256": "b13831f4182dd87fa286851b7617144ec3edce030ed148428676cf00699cba58"
+    }
+  ],
+  "files": [
+    {
+      "path": "kdflow/h1b/__init__.py",
+      "sha256": "bb8fa0f3ccd318368d986568b5423b522b51100210b877b3844835b191f6279a"
+    },
+    {
+      "path": "kdflow/h1b/baseline.py",
+      "sha256": "a1b46847ae84906bdad4068a9a6bae3fca47b07748f72e20e0ac6a699d7c393d"
+    },
+    {
+      "path": "kdflow/h1b/buckets.py",
+      "sha256": "964745a54ad61fe3d7148efdabbd8af8ea6c193885db5fe5a8e72330d55a5c2f"
+    },
+    {
+      "path": "kdflow/h1b/chunklog.py",
+      "sha256": "37e53384993b3d19fe533e58f873953a0c04cc8c730a6ee5ed1ef07b954c778b"
+    },
+    {
+      "path": "kdflow/h1b/exact.py",
+      "sha256": "b97eabf9a5b6f6435311c6d3b0321bfe63723b2fd23299684078f1d08dec0f4b"
+    },
+    {
+      "path": "kdflow/h1b/groups.py",
+      "sha256": "129788526be7c11d6a4493b25ec6ab5843dc090981a5342c482ff68b7c16f20a"
+    },
+    {
+      "path": "kdflow/h1b/strprob.py",
+      "sha256": "ea7a893c15fcaa96046293af1b37a50fa663b47b13e1bd20a0fbb9bbf49ce736"
+    },
+    {
+      "path": "kdflow/h1b/vocab_index.py",
+      "sha256": "55ac8c76ced13aa98ead01375de41906be9764276569af25908683d6a5a3abf3"
+    },
+    {
+      "path": "tools/h1b/__init__.py",
+      "sha256": "bbc4b569caaf873fc370d1dbe601de3b41ea107725c328997cb6534c0cc93f4a"
+    },
+    {
+      "path": "tools/h1b/canary.py",
+      "sha256": "f106d45d41024386df56e8ccc8da74c56247edfeb9a2c35879f9fe8712512e93"
+    },
+    {
+      "path": "tools/h1b/common.py",
+      "sha256": "8adf680d9e747e40f2781613a2b53b77f44b58bfe58ac0606c08432de4e05d06"
+    },
+    {
+      "path": "tools/h1b/enrich_archive.py",
+      "sha256": "db21f7bdd5d038b5cb8fc9888bd70a7e13265107edd8bf34fe32f0d6475eb770"
+    },
+    {
+      "path": "tools/h1b/exact_strprob.py",
+      "sha256": "99b9630d4c6b7cc6d5685cd47014a5dfcb80fce0ae6f133a529a9799ce25be35"
+    },
+    {
+      "path": "tools/h1b/fit_cb.py",
+      "sha256": "077f8e0c832110052711cc81e71f3b71cc74c606197f0bbc9049ea021a21247b"
+    },
+    {
+      "path": "tools/h1b/grad_replay.py",
+      "sha256": "a1af8a33d105c448ee5a79e69ad7bf9b5b077757578dc28f61b4fc3e5c6e33fb"
+    },
+    {
+      "path": "tools/h1b/sketch.py",
+      "sha256": "69b6093ffd3a096686aaa47936bb0b8785426ca8ef88ccc58e0daf77aa214186"
+    },
+    {
+      "path": "tools/h1b/validate_alignment.py",
+      "sha256": "39bcfd71736f5f1ddf79bb4eee9abf85152d77e4b158d84cdc452fcc7217e3e5"
+    },
+    {
+      "path": "tools/h1b/validate_sketch.py",
+      "sha256": "84e47110eda3f7b1599fdeef4f1be0cd4bf4eb2bd5e78ac974f619f000c01de1"
+    },
+    {
+      "path": "kdflow/algorithms/h1b_span.py",
+      "sha256": "8c332d91549ea7e549b2f771d16b7b31dcc263cf3d77000bfe4d5eb941489acb"
+    },
+    {
+      "path": "tests/test_h1b.py",
+      "sha256": "61e61fff4bdf4a8b1dea1c6e9fd97974a34d75b06a1516ce562dfe971b9a2c40"
+    }
+  ],
+  "frozen_strict": [
+    {
+      "sha256": "fdbd99c55aeac4d061527158bdfc82a93333a42bf347eceaa134d34f5ef05952",
+      "path": "kdflow/algorithms/simple_ctkd.py"
+    },
+    {
+      "sha256": "5c6647c6fb8064ffd5f7b1ed971168cd1f3392caee62e2d75916d41931828e18",
+      "path": "kdflow/algorithms/byte_align_ctkd.py"
+    },
+    {
+      "sha256": "298925da4ce973b0f2917e5ba5ad2adbc4862d7c1a73515c5c86514ac0d22ddb",
+      "path": "kdflow/algorithms/topk_byte_align_ctkd.py"
+    },
+    {
+      "sha256": "c77cd962cb0430cd97ace5312077e847398a03da3ce1473062fd2c5c9808498a",
+      "path": "kdflow/token_alignment.py"
+    },
+    {
+      "sha256": "abca69fdbe4f7d90a7ca990300189147230cce8f20d589c934d88f0b63c4edf6",
+      "path": "kdflow/loss/reverse_kl_div.py"
+    },
+    {
+      "sha256": "151c81614f97b908465a952f595abe1f4dc5c0d17cea86431a7068c381125cc5",
+      "path": "kdflow/loss/chunked_loss.py"
+    }
+  ],
+  "baseline_commit": "0eeed4ca2b0d7b07dd50076e35d81f030a3b9f2d"
+}

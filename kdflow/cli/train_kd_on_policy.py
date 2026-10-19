@@ -94,6 +94,7 @@ def train(args):
     if not tokenizer_info.vocab_identical and args.kd.kd_algorithm not in {
         "simple_ctkd",
         "byte_align_ctkd",
+        "h1b_span",
         "topk_byte_align_ctkd",
         "simct",
         "simct_paper",
@@ -101,7 +102,7 @@ def train(args):
     }:
         raise ValueError(
             "Cross-tokenizer distillation supports simple_ctkd, "
-            "byte_align_ctkd, topk_byte_align_ctkd, simct, simct_paper, or an opt-in mp_opd_* mode."
+            "byte_align_ctkd, topk_byte_align_ctkd, simct, simct_paper, h1b_span, or an opt-in mp_opd_* mode."
         )
     
     environment_rollout = bool(args.rollout.alfworld_config)

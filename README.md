@@ -32,6 +32,11 @@ Separate [TRUST-R/B/P and SimCT paper-score modes](docs/TRUST_PAPER.md) provide
 optimizer window; `simct_paper` corrects log-probability scores while `simct` stays
 the released author-code baseline.
 
+An opt-in [H1b span experiment](docs/H1B.md) adds five factorial presets,
+`h1b-a`, `h1b-b`, `h1b-b-bl`, `h1b-c-str`, `h1b-c`, plus offline trunk/exact
+scoring and gradient replay. Real-input and B200 gates remain separate from CPU
+checks; see the contract's approximation and baseline caveats before training.
+
 ## Original project documentation
 
 This repository provides the implementation and example training scripts for `byte_align_ctkd` and `topk_byte_align_ctkd`.

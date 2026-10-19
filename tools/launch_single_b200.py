@@ -17,6 +17,7 @@ import subprocess
 
 SOURCE = pathlib.Path(__file__).resolve().parents[1]
 ARCHIVE_SHA = '084c321c0b7af1cd3a36d12a595c623567d4a37525aa0eecbc3933aa7f9b15c3'
+H1B_ARMS={'h1b-a':'a','h1b-b':'b','h1b-b-bl':'b_bl','h1b-c-str':'c_str','h1b-c':'c'}
 
 
 def parser():
@@ -28,7 +29,7 @@ def parser():
     p.add_argument('--algorithm', choices=['strict-top16', 'strict-full', 'simct', 'simct_paper', 'mp-atomic',
         'mp-fixed1', 'mp-fixed2', 'mp-fixed3', 'mp-fixed4', 'mp-fixed5',
         'mp-random1-2', 'mp-random2-5', 'mp-grass-chunk', 'mp-align', 'mp-align-new',
-        'mp-trust-r','mp-trust-b','mp-trust-p'], default='strict-top16')
+        'mp-trust-r','mp-trust-b','mp-trust-p',*H1B_ARMS], default='strict-top16')
     p.add_argument('--mp-chunk-source', choices=['xtoken', 'run'], default='xtoken')
     p.add_argument('--mp-chunk-run-length', type=int, default=2)
     p.add_argument('--mp-geometry', choices=['exact_head', 'diag'], default='exact_head')
@@ -103,6 +104,9 @@ def build_plan(args):
             flags.update(mp_opd_align_new_min_descent_fraction=0.1, mp_opd_align_new_eps_g=1e-12)
         if family.startswith('trust_'):
             flags.update(mp_opd_grass_geometry='exact_head',mp_opd_trust_eps_g=1e-12,mp_opd_trust_vocab_chunk=4096)
+    if args.algorithm in H1B_ARMS:
+        flags.update(kd_algorithm='h1b_span',h1b_arm=H1B_ARMS[args.algorithm],h1b_span_lambda=.5,
+                     h1b_log_sample_rate=.05,h1b_dump_every='0,20,60,100',top_p=1.,eval_math_top_p=.95)
     command = ['bash', str(runtime / 'python-b200.sh'), '-u', '-m', 'kdflow.cli.train_kd_on_policy']
     for key, value in flags.items():
         command.extend(['--' + key, str(value)])
@@ -110,7 +114,9 @@ def build_plan(args):
             'source': str(SOURCE), 'flags': flags, 'command': command,
             'gradient_accumulation_microsteps': 512 // args.micro_batch,
             'expected_runtime_archive_sha256': ARCHIVE_SHA,
-            'qualification': ('paper-score SimCT reconstruction; no B200/full-training qualification'
+            'qualification': ('experimental H1b span arms; trunk gate pending; no B200/full-training qualification'
+                              if args.algorithm in H1B_ARMS else
+                              'paper-score SimCT reconstruction; no B200/full-training qualification'
                               if args.algorithm == 'simct_paper' else
                               'author-code SimCT port; no B200/full-training qualification'
                               if args.algorithm == 'simct' else

@@ -130,10 +130,13 @@ class MathEvaluator:
     def evaluate(self, global_step: int) -> Dict[str, float]:
         eval_data = self._load_dataset()
         prompts, labels = self._build_prompts(eval_data)
+        eval_top_p=getattr(getattr(self.args,'rollout',None),'eval_math_top_p',None)
         sampling_params = {
             "max_new_tokens": self.max_tokens,
             "temperature": self.generate_kwargs.get("temperature", 0.6),
-            "top_p": self.generate_kwargs.get("top_p", 0.95),
+            "top_p": (eval_top_p
+                      if eval_top_p is not None
+                      else self.generate_kwargs.get("top_p", 0.95)),
             "n": self.n_samples,
         }
 

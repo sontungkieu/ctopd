@@ -12,6 +12,7 @@ def register_algorithm(name):
 
 from kdflow.algorithms.simple_ctkd import SimpleCrossTokenizerKD
 from kdflow.algorithms.byte_align_ctkd import ByteAlignCrossTokenizerKD
+from kdflow.algorithms.h1b_span import H1bSpanCTKD
 from kdflow.algorithms.topk_byte_align_ctkd import TopKByteAlignCrossTokenizerKD
 from kdflow.algorithms.simct import SimCT
 from kdflow.algorithms.simct_paper import SimCTPaper

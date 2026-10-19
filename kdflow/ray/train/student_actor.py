@@ -239,7 +239,7 @@ class StudentRayActor:
         lm_head = lm_head.to(device).eval()
         lm_head.requires_grad_(False)
         logger.info(f"Loaded lm_head ({weight_key}), shape: {lm_head.weight.shape}")
-        if self.args.kd.kd_algorithm.startswith('mp_opd_'):
+        if self.args.kd.kd_algorithm.startswith('mp_opd_') or self.args.kd.kd_algorithm == 'h1b_span':
             head_config = getattr(config, 'text_config', None) or config
             lm_head._mp_opd_softcap = getattr(head_config, 'final_logit_softcapping', None)
         return lm_head
@@ -298,6 +298,9 @@ class StudentRayActor:
             self.strategy.accumulated_gradient = len(train_data)
             self.strategy.step = 0
 
+        if hasattr(self.kd_algorithm,'validate_optimizer_window'):
+            self.kd_algorithm.validate_optimizer_window(train_data)
+
         for batch in train_data:
             micro_batch = self._prepare_micro_batch(batch)
 
@@ -332,6 +335,9 @@ class StudentRayActor:
                 status[key] = sum(status[key]) / len(status[key])
 
         status["train/lr"] = self.scheduler.get_last_lr()[0]
+
+        if hasattr(self.kd_algorithm,'on_optimizer_window_end'):
+            status.update(self.kd_algorithm.on_optimizer_window_end())
 
         for key in status:
             status[key] = self.strategy.all_reduce(status[key], op="mean")

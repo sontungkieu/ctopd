@@ -14,6 +14,7 @@ class RolloutDataProcessor:
     CONDITIONAL_EOS_ALGORITHMS = frozenset(
         {
             "byte_align_ctkd",
+            "h1b_span",
             "topk_byte_align_ctkd",
         }
     )
@@ -49,13 +50,17 @@ class RolloutDataProcessor:
         """Save, tokenize and collate raw rollout outputs."""
         if sample_metadata is not None and len(sample_metadata) != len(outputs):
             raise ValueError("sample_metadata and outputs must have the same length")
+        archive_metadata=sample_metadata
+        if self.args.kd.kd_algorithm=='h1b_span':
+            archive_metadata=[dict(m or {},tea_prompt=t,output_ids=o.get('output_ids',[]))
+                              for m,t,o in zip(sample_metadata or [{} for _ in outputs],tea_prompts,outputs)]
         self._save_rollout_data(
             stu_prompts,
             outputs,
             labels,
             global_step,
             mode,
-            sample_metadata=sample_metadata,
+            sample_metadata=archive_metadata,
         )
 
         kd_algorithm = self.args.kd.kd_algorithm
@@ -364,6 +369,10 @@ class RolloutDataProcessor:
             "total_length": torch.FloatTensor([[total_length]]),
         }
         stu_multi_modal_inputs = stu_tokens.get("_stu_multi_modal_inputs")
+        if self.args.kd.kd_algorithm=='h1b_span':
+            tok=getattr(self.student_processor,'tokenizer',self.student_processor)
+            encoded=tok(response_text,add_special_tokens=False)['input_ids']
+            sample['stu_reencode_match']=torch.FloatTensor([[float(list(encoded)==list(response_ids))]])
         if stu_multi_modal_inputs is not None:
             sample["stu_multi_modal_inputs"] = [stu_multi_modal_inputs]
         if images:

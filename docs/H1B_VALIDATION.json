@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-19",
+  "baseline_commit": "0eeed4ca2b0d7b07dd50076e35d81f030a3b9f2d",
+  "platform": "WSL Linux, existing CPU environment; no package installation",
+  "python": "3.12.3",
+  "torch": "2.14.0+cpu",
+  "full_suite": {
+    "command": "TORCH_COMPILE_DISABLE=1 OMP_NUM_THREADS=1 python -m unittest discover -s tests -v",
+    "passed": 104,
+    "skipped": 0,
+    "elapsed_seconds": 72.46
+  },
+  "verified": [
+    "2000 cover-prefix/brute-force queries, duplicate byte IDs and 0xff bounds",
+    "Strict-group fixture parity including EOS and flattened response offsets",
+    "30-token toy LM on 50 strings: one-exit enumeration equals trunk; exhaustive probability >= trunk >= canonical path",
+    "Exact search duplicate branches, pruning/node-budget omitted-mass bounds",
+    "Same-tokenizer fixture: all five arms have identical loss and zero span term",
+    "Previous-window baseline, state restore and no evaluation/no-grad mutation",
+    "Arm b student gradients equal autograd span MSE; arm a loss/all student gradients equal Strict on accepted fixtures",
+    "Tile/checkpoint gradient invariance; whole-response mismatch exclusion and connected zero backward",
+    "Actual actor fit/evaluate bodies with CPU SGD: window hook after one optimizer update and no hook during evaluation",
+    "Actual rollout tokenizer method: EOS policy and raw re-encoding match field",
+    "Actual math evaluation sampling expression: independent eval top-p and unchanged rollout kwargs",
+    "Window moments weight chunks directly rather than microbatch means",
+    "CountSketch chunk invariance, fixture norm error <1 percent and cosine error <0.01",
+    "End-to-end saved sketch analysis CLI, known noise curve and undefined zero-vector handling",
+    "KV oracle versus full-prefix fixture with deliberately mutating cache and sibling branches",
+    "Five full-workload launcher dry-run plans; separate five-step diagnostic preview",
+    "New source hashes verified; six frozen Strict sources match baseline Git blobs",
+    "All existing Strict/SimCT/MP/ALIGN/TRUST regression tests",
+    "git diff --check",
+    "Old archive teacher-prompt recovery: exact unambiguous dataset/template match, no sampled-ID fabrication"
+  ],
+  "test_isolation": "CPU suite bypasses utility package tokenizer-factory initialization using a test-only namespace; real algorithm/loss/logging numerical source is executed",
+  "not_measured": [
+    "T1 on 10000 real texts with both real tokenizers",
+    "T3/T9 on 500 real archived responses",
+    "M2 real model trunk table and M3 exact/trunk gate at checkpoints 0 and 60",
+    "T10 five-preset B200/FSDP canaries and parquet validation",
+    "Real HF KV cache compatibility, head-tile throughput and memory",
+    "T11 on two full-model gradient groups; real replay curves",
+    "Full training, task accuracy, bias-versus-variance decision or paper reproduction"
+  ],
+  "deliberately_not_implemented": [
+    "Batched KV frontier expansion; current checker uses depth-bounded DFS cache with full-prefix fallback",
+    "Conditional depth-2 training estimator before a failed measured trunk gate",
+    "Optional Adam-preconditioned replay and optimizer-state exports",
+    "Fresh 4096-response generation; replay requires a supplied fixed archive",
+    "Automatic causal decision-table classification or optional c-plus experiments"
+  ],
+  "compute": "No new GPU job, model/dataset download, remote build or training launched",
+  "h1b_tests_in_full_suite": 21
+}
