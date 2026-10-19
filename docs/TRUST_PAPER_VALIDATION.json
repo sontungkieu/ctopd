@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-19",
+  "donor_commit": "529ee4b691732e1040d6a45f05fd12f58def96ec",
+  "platform": "WSL Linux, CPU only",
+  "python": "3.12.3",
+  "torch": "2.14.0+cpu",
+  "command": "TORCH_COMPILE_DISABLE=1 OMP_NUM_THREADS=1 python -m unittest discover -s tests -v",
+  "full_suite": {"passed": 76, "skipped": 0, "elapsed_seconds": 77.342},
+  "trust_parity": {
+    "cases": 6,
+    "max_loss_abs_error": 0.0,
+    "max_gradient_abs_error": 5.960464477539063e-08,
+    "dtype": "float32",
+    "atol": 1e-6,
+    "rtol": 1e-5,
+    "coverage": "TRUST-R/B/P complete loss and all student gradients, with/without final softcap",
+    "oracle": "Original donor TRUST kernels in separate fixture namespace and original TRUST-R method body; frozen source-verified Gram/credit helpers shared"
+  },
+  "paper_score": {
+    "result": "pass",
+    "scope": "Eq7-8 score reconstruction on released alignment/candidate interface",
+    "checks": ["Independent candidate scores and RKL", "Complete adapter loss and all student gradients", "Per-position additive logit-shift loss/gradient invariance"],
+    "loss_gradient_atol": 1e-6,
+    "loss_gradient_rtol": 1e-5,
+    "shift_invariance_atol": 2e-6
+  },
+  "additional_checks": [
+    "Explicit-autograd full-batch cross-response geometry and TRUST-P opposing-component projection",
+    "Actual actor fit/evaluate dispatch with real CPU SGD: one optimizer update, train-mode dropout replay, Python/NumPy/Torch RNG advance once",
+    "Microbatch regrouping preserves full-window loss and gradients",
+    "Evaluation restores model mode and leaves weights/calibration state untouched",
+    "Common-normalizer/window guards and calibration cleanup on errors",
+    "No teacher parameter or hidden-state gradient",
+    "All existing Strict/SimCT/MP/ALIGN numerical regressions and frozen source hashes",
+    "Launcher preserves common model/data/batch/steps/evaluation settings",
+    "git diff --check"
+  ],
+  "not_qualified": [
+    "Target Torch 2.11 CUDA, B200/FSDP runtime and full-size memory/throughput",
+    "Full Transformer or Adam descent guarantees",
+    "Full training resume, accuracy or either paper's full recipe",
+    "Complete SimCT paper semantics beyond Eq7-8 score correction",
+    "Parity with unavailable Rethinking simct baseline revision"
+  ]
+}

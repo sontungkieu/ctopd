@@ -3,6 +3,10 @@
 Select `simct` to run the author's released `span_ctkd` objective. This is separate
 from Strict and the MP-OPD modes: `mp-atomic`/`mp-fixed1` are not SimCT.
 
+The separate [paper-score reconstruction](TRUST_PAPER.md), `simct_paper`, corrects
+Eq.7-8 score normalization on this same candidate/alignment interface. The author
+baseline described below remains unchanged.
+
 ## Source and exact scope
 
 The source is [sunjie279/SimCT-](https://github.com/sunjie279/SimCT-/tree/cf0f33a0e6c967d4b74ea32b2dba12be01b73b9e),

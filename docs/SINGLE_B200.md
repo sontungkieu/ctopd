@@ -8,6 +8,8 @@ The separate [SimCT author-code preset](SIMCT.md), `--algorithm simct`, uses the
 
 The separate [ALIGN-NEW preset](ALIGN_NEW.md), `--algorithm mp-align-new`, uses the same workload with the donor's full-response head guard. It requires exact-head geometry and adds no GPU/full-training qualification.
 
+The [TRUST and paper-score presets](TRUST_PAPER.md) add `mp-trust-r/b/p` (separate choices) and `simct_paper` on the same workload. TRUST-B/P require complete-window two-pass calibration; `simct_paper` retains the released candidate/alignment interface while correcting score normalization.
+
 ## Preserved training and evaluation settings
 
 | Setting | Value |

@@ -1,0 +1,84 @@
+def _trust_r_loss(
+        self,
+        credits,
+        atoms,
+        *,
+        student_logits: torch.Tensor | None,
+        student_labels: torch.Tensor | None,
+        student_hidden: torch.Tensor | None,
+    ):
+        """TRUST-R: scale this response's mismatch update by strict agreement.
+
+        The calibration unit is the response, which is exactly what
+        ``_partition_loss`` is called with, so no restructuring is needed: the
+        strict/mismatch split comes from the atomizer boundary types, the Gram
+        is the GRASS exact head Gram over all atoms, and the loss keeps the
+        strict side whole while the mismatch side takes the detached lambda.
+        """
+        if student_logits is None or student_labels is None:
+            raise RuntimeError(
+                "mp_opd trust modes require the student logits and labels"
+            )
+        if student_hidden is None:
+            raise RuntimeError(
+                "mp_opd trust modes require the student LM-head hidden states"
+            )
+        if credits.student_token_nll is None:
+            raise RuntimeError(
+                "mp_opd trust modes require per-token student NLL"
+            )
+        if credits.student_token_nll.numel() != student_logits.shape[0]:
+            raise ValueError(
+                "per-token student NLL and student logits disagree on token count"
+            )
+
+        device = credits.rate.device
+        is_strict = strict_mask([atom.boundary_type for atom in atoms]).to(device)
+        n = len(atoms)
+        atom_ranges = tuple((atom.student_start, atom.student_end) for atom in atoms)
+        covered = atom_ranges[-1][1]
+        if not gram_affordable(covered, int(student_logits.shape[1]), device):
+            raise ValueError(
+                "mp_opd trust_r Gram needs ~"
+                f"{covered * int(student_logits.shape[1]) * 16 / 1e9:.1f} GiB transient; "
+                "device cannot hold it, atomic fallback"
+            )
+        head = chunk_head_gram(
+            student_logits[:covered],
+            student_hidden[:covered],
+            student_labels[:covered],
+            atom_ranges,
+            [(0, n)],
+            selected_log_prob=(-credits.student_token_nll[:covered]).detach(),
+            softcap=self.grass_softcap,
+            head_bias=self.grass_head_bias,
+            diagonal_only=False,
+        )
+        with torch.no_grad():
+            q = credits.rate.detach().to(torch.float32)
+            gram = head.gram.detach().to(torch.float32)
+            result = trust_calibrate(
+                q[is_strict],
+                q[~is_strict],
+                gram[is_strict][:, is_strict],
+                gram[~is_strict][:, ~is_strict],
+                gram[is_strict][:, ~is_strict],
+                eps_g=self.trust_eps_g,
+            )
+        loss = trust_response_loss(
+            credits.current_nll, credits.rate, is_strict, ~is_strict, result
+        )
+        token_counts = torch.tensor(
+            [atom.student_token_count for atom in atoms],
+            dtype=torch.float32,
+            device=device,
+        )
+        raw = trust_response_metrics(result, is_strict, token_counts, scope="response")
+        metrics = {
+            self._TRUST_RESPONSE_METRIC_NAMES[key]: credits.rate.new_tensor(value)
+            for key, value in raw.items()
+        }
+        metrics.update(self._trust_static_metrics(
+            credits.rate, head.symmetry_error, head.token_count
+        ))
+        return loss, metrics

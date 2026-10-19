@@ -24,6 +24,11 @@ A separate [author-code SimCT baseline](docs/SIMCT.md) uses `--algorithm simct`
 in the same launcher. It preserves the pinned released implementation, with
 original-source loss/gradient parity tests and an explicit paper/code distinction.
 
+Separate [TRUST-R/B/P and SimCT paper-score modes](docs/TRUST_PAPER.md) provide
+`mp-trust-r`, `mp-trust-b`, `mp-trust-p` and `simct_paper`. B/P calibrate the complete
+optimizer window; `simct_paper` corrects log-probability scores while `simct` stays
+the released author-code baseline.
+
 ## Original project documentation
 
 This repository provides the implementation and example training scripts for `byte_align_ctkd` and `topk_byte_align_ctkd`.

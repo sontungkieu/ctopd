@@ -18,6 +18,13 @@ the CTOPD launcher. The initial adapter requires one student rank, ring size 1,
 | `mp-grass-chunk` | `mp_opd_grass_chunk` | Risk-adaptive shrinkage within supplied chunks; no DP |
 | `mp-align` | `mp_opd_align` | Donor ALIGN v1 cyclic coefficient-space PCGrad within the same chunks |
 | `mp-align-new` | `mp_opd_align_new` | Local ALIGN plus full-response head-descent guard; see [ALIGN_NEW.md](ALIGN_NEW.md) |
+| `mp-trust-r` | `mp_opd_trust_r` | Strict plus mismatch scaled once per response |
+| `mp-trust-b` | `mp_opd_trust_b` | Strict plus mismatch scaled once per complete optimizer batch |
+| `mp-trust-p` | `mp_opd_trust_p` | Project opposing mismatch component through a complete-batch strict scale |
+
+See [TRUST_PAPER.md](TRUST_PAPER.md) for the two-pass B/P actor contract and the
+separate `simct_paper` score reconstruction. TRUST uses strict/mismatch atom types,
+not the `xtoken` chunk partition used by ALIGN/GRASS.
 
 Fixed/random groups tile each response independently. The final tail may be
 shorter than the requested length/minimum. Randomness uses the configured seed

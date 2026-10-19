@@ -23,7 +23,7 @@ class DistillationArguments:
         default="byte_align_ctkd",
         metadata={
             "help": "KD algorithm for each training step.",
-            "choices": ["simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", "simct", *MP_OPD_ALGORITHMS],
+            "choices": ["simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", "simct", "simct_paper", *MP_OPD_ALGORITHMS],
         }
     )
     kd_loss_fn: str = field(
@@ -129,6 +129,8 @@ class DistillationArguments:
     mp_opd_align_eps_h: float = field(default=1e-12)
     mp_opd_align_new_min_descent_fraction: float = field(default=0.1)
     mp_opd_align_new_eps_g: float = field(default=1e-12)
+    mp_opd_trust_eps_g: float = field(default=1e-12)
+    mp_opd_trust_vocab_chunk: int = field(default=4096)
 
     def __post_init__(self):
         if self.multi_teacher_config is not None:
@@ -136,18 +138,23 @@ class DistillationArguments:
                 "This release supports one teacher model per run; "
                 "use --teacher_name_or_path instead of --multi_teacher_config."
             )
-        supported_algorithms = {"simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", "simct", *MP_OPD_ALGORITHMS}
+        supported_algorithms = {"simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", "simct", "simct_paper", *MP_OPD_ALGORITHMS}
         if self.kd_algorithm not in supported_algorithms:
             raise ValueError(
                 f"kd_algorithm must be one of {sorted(supported_algorithms)}, "
                 f"got {self.kd_algorithm!r}."
             )
-        if self.kd_algorithm == 'simct':
+        if self.kd_algorithm in {'simct','simct_paper'}:
             if self.kd_ratio != 1 or self.kd_temperature != 1 or self.kd_loss_fn != 'rkl':
                 raise ValueError('SimCT baseline requires kd_ratio=1, kd_temperature=1, kd_loss_fn=rkl')
             if not math.isfinite(self.simct_gh_mask_threshold) or self.simct_gh_mask_threshold < 0:
                 raise ValueError('SimCT G(h) threshold must be finite and nonnegative')
         if self.kd_algorithm in MP_OPD_ALGORITHMS:
+            if self.kd_algorithm.startswith('mp_opd_trust_'):
+                if self.mp_opd_grass_geometry != 'exact_head':
+                    raise ValueError('TRUST requires exact_head geometry')
+                if not math.isfinite(self.mp_opd_trust_eps_g) or self.mp_opd_trust_eps_g < 0 or self.mp_opd_trust_vocab_chunk < 1:
+                    raise ValueError('TRUST requires finite nonnegative eps_g and positive vocabulary tile')
             if self.kd_algorithm == 'mp_opd_align_new':
                 if self.mp_opd_grass_geometry != 'exact_head':
                     raise ValueError('ALIGN-NEW requires exact_head geometry')

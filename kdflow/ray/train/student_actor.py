@@ -288,6 +288,9 @@ class StudentRayActor:
         Returns:
             Training status dict
         """
+        if getattr(self.kd_algorithm,'requires_optimizer_batch',False):
+            from kdflow.algorithms.trust_training import fit_trust_batch
+            return fit_trust_batch(self,train_data)
         self.student.train()
         status = defaultdict(list)
 
@@ -338,6 +341,9 @@ class StudentRayActor:
     @torch.no_grad()
     def evaluate(self, eval_data):
         """Evaluate the current student without updating model states."""
+        if getattr(self.kd_algorithm,'requires_optimizer_batch',False):
+            from kdflow.algorithms.trust_training import evaluate_trust_batch
+            return evaluate_trust_batch(self,eval_data)
         was_training = self.student.training
         self.student.eval()
         metric_sums = defaultdict(float)

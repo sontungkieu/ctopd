@@ -25,9 +25,10 @@ def parser():
                    default=pathlib.Path('/workspace/storage-shared/nlp/tungks/ctopd_all'))
     p.add_argument('--runtime', type=pathlib.Path,
                    help='Installed prefix; default CTOPD_RUNTIME_PREFIX or /opt/ctopd-b200')
-    p.add_argument('--algorithm', choices=['strict-top16', 'strict-full', 'simct', 'mp-atomic',
+    p.add_argument('--algorithm', choices=['strict-top16', 'strict-full', 'simct', 'simct_paper', 'mp-atomic',
         'mp-fixed1', 'mp-fixed2', 'mp-fixed3', 'mp-fixed4', 'mp-fixed5',
-        'mp-random1-2', 'mp-random2-5', 'mp-grass-chunk', 'mp-align', 'mp-align-new'], default='strict-top16')
+        'mp-random1-2', 'mp-random2-5', 'mp-grass-chunk', 'mp-align', 'mp-align-new',
+        'mp-trust-r','mp-trust-b','mp-trust-p'], default='strict-top16')
     p.add_argument('--mp-chunk-source', choices=['xtoken', 'run'], default='xtoken')
     p.add_argument('--mp-chunk-run-length', type=int, default=2)
     p.add_argument('--mp-geometry', choices=['exact_head', 'diag'], default='exact_head')
@@ -42,8 +43,8 @@ def parser():
 
 
 def build_plan(args):
-    if args.algorithm == 'mp-align-new' and args.mp_geometry != 'exact_head':
-        raise ValueError('ALIGN-NEW requires exact_head geometry')
+    if (args.algorithm == 'mp-align-new' or args.algorithm.startswith('mp-trust-')) and args.mp_geometry != 'exact_head':
+        raise ValueError('ALIGN-NEW/TRUST requires exact_head geometry')
     if args.concurrency < 1 or args.eval_timeout < 0 or args.mp_chunk_run_length < 1:
         raise ValueError('Concurrency must be positive and eval timeout nonnegative')
     run_id = args.run_id or (datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
@@ -82,8 +83,8 @@ def build_plan(args):
         'teacher_mem_fraction_static': 0.6, 'teacher_offload_tags': 'all',
         'chunked_loss_size': 2048, 'use_wandb': False,
     }
-    if args.algorithm == 'simct':
-        flags.update(kd_algorithm='simct', simct_gh_mask_threshold=0.0)
+    if args.algorithm in {'simct','simct_paper'}:
+        flags.update(kd_algorithm=args.algorithm, simct_gh_mask_threshold=0.0)
     if args.algorithm.startswith('mp-'):
         name = args.algorithm[3:]
         family = 'fixed' if name.startswith('fixed') else 'random' if name.startswith('random') else name.replace('-', '_')
@@ -100,6 +101,8 @@ def build_plan(args):
                          mp_opd_grass_geometry=args.mp_geometry)
         if family == 'align_new':
             flags.update(mp_opd_align_new_min_descent_fraction=0.1, mp_opd_align_new_eps_g=1e-12)
+        if family.startswith('trust_'):
+            flags.update(mp_opd_grass_geometry='exact_head',mp_opd_trust_eps_g=1e-12,mp_opd_trust_vocab_chunk=4096)
     command = ['bash', str(runtime / 'python-b200.sh'), '-u', '-m', 'kdflow.cli.train_kd_on_policy']
     for key, value in flags.items():
         command.extend(['--' + key, str(value)])
@@ -107,7 +110,9 @@ def build_plan(args):
             'source': str(SOURCE), 'flags': flags, 'command': command,
             'gradient_accumulation_microsteps': 512 // args.micro_batch,
             'expected_runtime_archive_sha256': ARCHIVE_SHA,
-            'qualification': ('author-code SimCT port; no B200/full-training qualification'
+            'qualification': ('paper-score SimCT reconstruction; no B200/full-training qualification'
+                              if args.algorithm == 'simct_paper' else
+                              'author-code SimCT port; no B200/full-training qualification'
                               if args.algorithm == 'simct' else
                               'experimental MP-OPD source port; no B200/full-training qualification'
                               if args.algorithm.startswith('mp-') else

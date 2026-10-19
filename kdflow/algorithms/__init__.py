@@ -14,6 +14,8 @@ from kdflow.algorithms.simple_ctkd import SimpleCrossTokenizerKD
 from kdflow.algorithms.byte_align_ctkd import ByteAlignCrossTokenizerKD
 from kdflow.algorithms.topk_byte_align_ctkd import TopKByteAlignCrossTokenizerKD
 from kdflow.algorithms.simct import SimCT
+from kdflow.algorithms.simct_paper import SimCTPaper
+from kdflow.algorithms.mp_opd_trust import TrustRMPOnPolicyKD, TrustBMPOnPolicyKD, TrustPMPOnPolicyKD
 from kdflow.algorithms.mp_opd_align_new import AlignNewMPOnPolicyKD
 from kdflow.algorithms.mp_opd import (
     AtomicMPOnPolicyKD, FixedMPOnPolicyKD, RandomMPOnPolicyKD,

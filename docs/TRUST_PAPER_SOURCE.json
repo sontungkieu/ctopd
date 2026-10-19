@@ -1,0 +1,70 @@
+{
+  "donor_repository": "https://github.com/sontungkieu/SimCT",
+  "donor_commit": "529ee4b691732e1040d6a45f05fd12f58def96ec",
+  "paper": "https://arxiv.org/html/2605.07711v1#S3.SS3",
+  "paper_mode_scope": "Eq7-8 log-probability score correction on the released alignment/candidate interface, not full paper recipe",
+  "files": [
+    {
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_trust.py",
+      "sha256": "df17bda4a46fdbf5ddac20b8741915c388d8d88110f7be47eca871ee57eb32a4"
+    },
+    {
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_trust_batch.py",
+      "sha256": "7d526663b2bf2ddf8d9def36565499a515ff43ddb5b1e66811c3d7672a9ed6f2"
+    },
+    {
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_trust_p.py",
+      "sha256": "428eade92186b2ca4198ce7b299f875fe9836ebf9d5877d71689677366ea0be4"
+    },
+    {
+      "path": "tests/fixtures/trust/_mp_opd_trust.py.txt",
+      "sha256": "df17bda4a46fdbf5ddac20b8741915c388d8d88110f7be47eca871ee57eb32a4"
+    },
+    {
+      "path": "tests/fixtures/trust/_mp_opd_trust_batch.py.txt",
+      "sha256": "7d526663b2bf2ddf8d9def36565499a515ff43ddb5b1e66811c3d7672a9ed6f2"
+    },
+    {
+      "path": "tests/fixtures/trust/_mp_opd_trust_p.py.txt",
+      "sha256": "428eade92186b2ca4198ce7b299f875fe9836ebf9d5877d71689677366ea0be4"
+    },
+    {
+      "path": "tests/fixtures/trust/_trust_r_loss.py.txt",
+      "sha256": "343f2609f69d88626738244413e4129797657d78b03dd956f435ea6a3e88230e"
+    }
+  ],
+  "unchanged_existing_files": [
+    {
+      "path": "kdflow/algorithms/mp_opd.py",
+      "sha256": "b2387d7f36502dea16c28f4391af4bc97a7e77f367d35dea2867c744e91277a6"
+    },
+    {
+      "path": "kdflow/algorithms/mp_opd_align_new.py",
+      "sha256": "8479b54a2560d0c3021b796c8766c8309f89b90390981d9d91ec9044a3d13eda"
+    },
+    {
+      "path": "kdflow/algorithms/simct.py",
+      "sha256": "d946926dd21fce6041e2fc3b2fd8d317d9dd8e845c5931783e1e6a2bcd70ca89"
+    },
+    {
+      "path": "kdflow/algorithms/simple_ctkd.py",
+      "sha256": "fdbd99c55aeac4d061527158bdfc82a93333a42bf347eceaa134d34f5ef05952"
+    },
+    {
+      "path": "kdflow/algorithms/byte_align_ctkd.py",
+      "sha256": "5c6647c6fb8064ffd5f7b1ed971168cd1f3392caee62e2d75916d41931828e18"
+    },
+    {
+      "path": "kdflow/algorithms/topk_byte_align_ctkd.py",
+      "sha256": "298925da4ce973b0f2917e5ba5ad2adbc4862d7c1a73515c5c86514ac0d22ddb"
+    },
+    {
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_head_pair.py",
+      "sha256": "be9163ccd7dbdd4e5a5228be7e06ce68f062a290709383c15b934658e0a83d58"
+    },
+    {
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_align.py",
+      "sha256": "c6c0286c74215a8d30888c15b2bb5820ab77f54a45afd832db99ca6eb81cf1e0"
+    }
+  ]
+}

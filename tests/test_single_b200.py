@@ -101,6 +101,20 @@ class LauncherTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'exact_head'):
             self.plan('--algorithm','mp-align-new','--mp-geometry','diag')
 
+    def test_trust_and_simct_paper_presets_keep_common_workload(self):
+        baseline=self.plan('--algorithm','strict-full')['flags']
+        for name,mode in [('simct_paper','simct_paper'),('mp-trust-r','mp_opd_trust_r'),
+                          ('mp-trust-b','mp_opd_trust_b'),('mp-trust-p','mp_opd_trust_p')]:
+            flags=self.plan('--algorithm',name)['flags']
+            self.assertEqual(flags['kd_algorithm'],mode)
+            for key in ('train_batch_size','rollout_batch_size','max_steps','generate_max_len',
+                        'learning_rate','eval_steps','eval_math_n_samples','student_name_or_path','train_dataset_path'):
+                self.assertEqual(flags[key],baseline[key])
+            if name.startswith('mp-trust'):
+                self.assertEqual(flags['mp_opd_grass_geometry'],'exact_head')
+                with self.assertRaisesRegex(ValueError,'exact_head'):
+                    self.plan('--algorithm',name,'--mp-geometry','diag')
+
     def test_dry_run_creates_no_files(self):
         with tempfile.TemporaryDirectory() as folder:
             destination = pathlib.Path(folder) / 'absent'
