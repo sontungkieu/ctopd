@@ -55,6 +55,14 @@ class LauncherTests(unittest.TestCase):
         self.assertEqual(plan['flags']['train_batch_size'], 512)
         self.assertEqual(plan['flags']['kd_algorithm'], 'byte_align_ctkd')
 
+    def test_simct_preset_changes_only_algorithm_and_adds_disabled_guard(self):
+        baseline = self.plan('--algorithm', 'strict-full')['flags']
+        flags = self.plan('--algorithm', 'simct')['flags']
+        self.assertEqual(flags['kd_algorithm'], 'simct')
+        self.assertEqual(flags['simct_gh_mask_threshold'], 0)
+        self.assertEqual({k: v for k, v in flags.items() if k not in {'kd_algorithm', 'simct_gh_mask_threshold'}},
+                         {k: v for k, v in baseline.items() if k != 'kd_algorithm'})
+
     def test_mp_mode_presets_preserve_full_workload(self):
         baseline = self.plan()['flags']
         variants = ['mp-atomic', *['mp-fixed' + str(n) for n in range(1, 6)],

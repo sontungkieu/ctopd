@@ -1,0 +1,63 @@
+{
+  "source_repository": "https://github.com/sunjie279/SimCT-",
+  "source_commit": "cf0f33a0e6c967d4b74ea32b2dba12be01b73b9e",
+  "author_launcher_algorithm": "span_ctkd",
+  "local_algorithm": "simct",
+  "files": [
+    {
+      "sha256": "a83bc75c4f297c7f13e9eac809647c8c9dc228b9a3fdf90eb413d30bfc94795a",
+      "path": "tests/fixtures/simct_upstream/span_ctkd.py.txt"
+    },
+    {
+      "sha256": "abca69fdbe4f7d90a7ca990300189147230cce8f20d589c934d88f0b63c4edf6",
+      "path": "tests/fixtures/simct_upstream/reverse_kl_div.py.txt"
+    },
+    {
+      "sha256": "64bd78c0a991dcaa8e438c0d96dd61d3aacabf136c5194816c0e9e349f407e49",
+      "path": "kdflow/algorithms/_simct_upstream/span_ctkd.py"
+    },
+    {
+      "sha256": "c9f18bd09f6b760b2ceb9826447d56fd72b272ee318fb2eb48be20a68210b3be",
+      "path": "kdflow/algorithms/_simct_upstream/LICENSE.MIT.txt"
+    }
+  ],
+  "unchanged_existing_files": [
+    {
+      "sha256": "fdbd99c55aeac4d061527158bdfc82a93333a42bf347eceaa134d34f5ef05952",
+      "path": "kdflow/algorithms/simple_ctkd.py"
+    },
+    {
+      "sha256": "5c6647c6fb8064ffd5f7b1ed971168cd1f3392caee62e2d75916d41931828e18",
+      "path": "kdflow/algorithms/byte_align_ctkd.py"
+    },
+    {
+      "sha256": "298925da4ce973b0f2917e5ba5ad2adbc4862d7c1a73515c5c86514ac0d22ddb",
+      "path": "kdflow/algorithms/topk_byte_align_ctkd.py"
+    },
+    {
+      "sha256": "b2387d7f36502dea16c28f4391af4bc97a7e77f367d35dea2867c744e91277a6",
+      "path": "kdflow/algorithms/mp_opd.py"
+    },
+    {
+      "sha256": "abca69fdbe4f7d90a7ca990300189147230cce8f20d589c934d88f0b63c4edf6",
+      "path": "kdflow/loss/reverse_kl_div.py"
+    },
+    {
+      "sha256": "151c81614f97b908465a952f595abe1f4dc5c0d17cea86431a7068c381125cc5",
+      "path": "kdflow/loss/chunked_loss.py"
+    },
+    {
+      "sha256": "c77cd962cb0430cd97ace5312077e847398a03da3ce1473062fd2c5c9808498a",
+      "path": "kdflow/token_alignment.py"
+    },
+    {
+      "sha256": "97a8495d68da45c05aa87ba8d87fe6db6dd520cb15de4352cb2ea0e927ddb076",
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_grass_chunk.py"
+    },
+    {
+      "sha256": "c6c0286c74215a8d30888c15b2bb5820ab77f54a45afd832db99ca6eb81cf1e0",
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_align.py"
+    }
+  ],
+  "changes": "Only register_algorithm import relocated in vendored class. Adapter uses hidden states and raw heads, per-response execution, CTOPD metric names, unit-RKL/no-CE contract, no token debug logging. See SIMCT.md for paper versus code distinction."
+}

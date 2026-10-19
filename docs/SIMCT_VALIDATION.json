@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-19",
+  "source_commit": "cf0f33a0e6c967d4b74ea32b2dba12be01b73b9e",
+  "platform": "WSL Linux, CPU only",
+  "python": "3.12.3",
+  "torch": "2.14.0+cpu",
+  "command": "TORCH_COMPILE_DISABLE=1 OMP_NUM_THREADS=1 python -m unittest discover -s tests -v",
+  "full_suite": {
+    "passed": 56,
+    "skipped": 0,
+    "elapsed_seconds": 91.714
+  },
+  "original_source_parity": {
+    "cases": 6,
+    "max_loss_abs_error": 0.0,
+    "max_student_gradient_abs_error": 3.725290298461914e-09,
+    "atol": 1e-6,
+    "rtol": 1e-5,
+    "dtype": "float32",
+    "coverage": "Mixed spans with two responses, strict-only, student softcap, G(h) disabled and three positive thresholds",
+    "oracle": "Pinned original class and original RKL numerical bodies; only imports/decorators removed for isolated execution"
+  },
+  "additional_checks": [
+    "Independent hand-constructed virtual logits, RKL and gradients",
+    "No teacher parameter or hidden-state gradient",
+    "Response boundaries and shared microbatch normalization",
+    "Empty alignment, invalid hidden rows, arguments and topology guards",
+    "Existing Strict/MP source hashes and numerical regression tests",
+    "SimCT dry-run retains batch512, steps100, generation8192 and common optimizer/evaluation settings",
+    "Staged diff whitespace check excluding the verbatim original RKL fixture, which retains three upstream trailing-whitespace lines",
+    "Source hashes rechecked after renaming the MIT notice to enforce LF through existing .gitattributes"
+  ],
+  "not_qualified": [
+    "Paper-equation equivalence: released code averages raw logits rather than log-probabilities",
+    "Parity with other KDFlow implementations named simct",
+    "Target Torch 2.11 CUDA, B200/FSDP execution and full-size memory/throughput",
+    "Full training, published scores and the original SFT warmup recipe"
+  ]
+}

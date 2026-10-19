@@ -25,7 +25,7 @@ def parser():
                    default=pathlib.Path('/workspace/storage-shared/nlp/tungks/ctopd_all'))
     p.add_argument('--runtime', type=pathlib.Path,
                    help='Installed prefix; default CTOPD_RUNTIME_PREFIX or /opt/ctopd-b200')
-    p.add_argument('--algorithm', choices=['strict-top16', 'strict-full', 'mp-atomic',
+    p.add_argument('--algorithm', choices=['strict-top16', 'strict-full', 'simct', 'mp-atomic',
         'mp-fixed1', 'mp-fixed2', 'mp-fixed3', 'mp-fixed4', 'mp-fixed5',
         'mp-random1-2', 'mp-random2-5', 'mp-grass-chunk', 'mp-align'], default='strict-top16')
     p.add_argument('--mp-chunk-source', choices=['xtoken', 'run'], default='xtoken')
@@ -80,6 +80,8 @@ def build_plan(args):
         'teacher_mem_fraction_static': 0.6, 'teacher_offload_tags': 'all',
         'chunked_loss_size': 2048, 'use_wandb': False,
     }
+    if args.algorithm == 'simct':
+        flags.update(kd_algorithm='simct', simct_gh_mask_threshold=0.0)
     if args.algorithm.startswith('mp-'):
         name = args.algorithm[3:]
         family = 'fixed' if name.startswith('fixed') else 'random' if name.startswith('random') else name.replace('-', '_')
@@ -101,7 +103,9 @@ def build_plan(args):
             'source': str(SOURCE), 'flags': flags, 'command': command,
             'gradient_accumulation_microsteps': 512 // args.micro_batch,
             'expected_runtime_archive_sha256': ARCHIVE_SHA,
-            'qualification': ('experimental MP-OPD source port; no B200/full-training qualification'
+            'qualification': ('author-code SimCT port; no B200/full-training qualification'
+                              if args.algorithm == 'simct' else
+                              'experimental MP-OPD source port; no B200/full-training qualification'
                               if args.algorithm.startswith('mp-') else
                               'unvalidated single-B200 full workload; no metric-match claim'),
             'evaluation_scope': 'MATH500 accuracy over 32 responses/problem; not the full paper benchmark suite'}

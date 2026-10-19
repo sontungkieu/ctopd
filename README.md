@@ -17,6 +17,10 @@ GRASS-Chunk and ALIGN as separate modes. The existing Strict algorithm sources
 remain unchanged. The new modes use sampled atom credits rather than Strict KL;
 they have CPU verification, with B200/full training qualification still pending.
 
+A separate [author-code SimCT baseline](docs/SIMCT.md) uses `--algorithm simct`
+in the same launcher. It preserves the pinned released implementation, with
+original-source loss/gradient parity tests and an explicit paper/code distinction.
+
 ## Original project documentation
 
 This repository provides the implementation and example training scripts for `byte_align_ctkd` and `topk_byte_align_ctkd`.

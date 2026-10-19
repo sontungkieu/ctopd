@@ -4,6 +4,8 @@
 
 Separate experimental MP-OPD presets (Atomic, Fixed1-5, Random1-2/2-5, GRASS-Chunk and ALIGN) are documented in [MP_OPD.md](MP_OPD.md). They retain the workload below but change the objective; they are not Strict reproduction modes. Their CPU checks do not qualify B200/FSDP execution or full-training memory requirements.
 
+The separate [SimCT author-code preset](SIMCT.md), `--algorithm simct`, uses the same common workload. It adds no SFT warmup; it is not the original SimCT end-to-end recipe.
+
 ## Preserved training and evaluation settings
 
 | Setting | Value |

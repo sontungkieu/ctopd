@@ -23,7 +23,7 @@ class DistillationArguments:
         default="byte_align_ctkd",
         metadata={
             "help": "KD algorithm for each training step.",
-            "choices": ["simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", *MP_OPD_ALGORITHMS],
+            "choices": ["simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", "simct", *MP_OPD_ALGORITHMS],
         }
     )
     kd_loss_fn: str = field(
@@ -111,6 +111,9 @@ class DistillationArguments:
         metadata={"help": "Top-k Ranking for Hierarchical Ranking Loss."}
     )
 
+    simct_gh_mask_threshold: float = field(default=0.0,
+        metadata={'help': 'Author SimCT optional G(h) mask; 0 disables it as in released launchers.'})
+
     # Opt-in MP-OPD namespace. None of these fields changes a Strict mode.
     mp_opd_fixed_span_length: int = field(default=2)
     mp_opd_random_min_length: int = field(default=1)
@@ -131,12 +134,17 @@ class DistillationArguments:
                 "This release supports one teacher model per run; "
                 "use --teacher_name_or_path instead of --multi_teacher_config."
             )
-        supported_algorithms = {"simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", *MP_OPD_ALGORITHMS}
+        supported_algorithms = {"simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", "simct", *MP_OPD_ALGORITHMS}
         if self.kd_algorithm not in supported_algorithms:
             raise ValueError(
                 f"kd_algorithm must be one of {sorted(supported_algorithms)}, "
                 f"got {self.kd_algorithm!r}."
             )
+        if self.kd_algorithm == 'simct':
+            if self.kd_ratio != 1 or self.kd_temperature != 1 or self.kd_loss_fn != 'rkl':
+                raise ValueError('SimCT baseline requires kd_ratio=1, kd_temperature=1, kd_loss_fn=rkl')
+            if not math.isfinite(self.simct_gh_mask_threshold) or self.simct_gh_mask_threshold < 0:
+                raise ValueError('SimCT G(h) threshold must be finite and nonnegative')
         if self.kd_algorithm in MP_OPD_ALGORITHMS:
             if self.kd_ratio != 1.0 or self.kd_temperature != 1.0 or self.kd_loss_fn != 'rkl':
                 raise ValueError('MP-OPD requires kd_ratio=1, kd_temperature=1, kd_loss_fn=rkl')

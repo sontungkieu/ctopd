@@ -22,6 +22,10 @@ from kdflow.utils.utils import get_tokenizer, load_custom_eval_fn
 
 
 def train(args):
+    if args.kd.kd_algorithm == 'simct' and (
+        args.train.num_nodes * args.train.num_gpus_per_node != 1 or args.model.ring_attn_size != 1
+    ):
+        raise ValueError('SimCT baseline initially requires one student rank and ring_attn_size=1')
     if args.kd.kd_algorithm in MP_OPD_ALGORITHMS and (
         args.train.num_nodes * args.train.num_gpus_per_node != 1
         or args.model.ring_attn_size != 1
@@ -91,11 +95,12 @@ def train(args):
         "simple_ctkd",
         "byte_align_ctkd",
         "topk_byte_align_ctkd",
+        "simct",
         *MP_OPD_ALGORITHMS,
     }:
         raise ValueError(
             "Cross-tokenizer distillation supports simple_ctkd, "
-            "byte_align_ctkd, topk_byte_align_ctkd, or an opt-in mp_opd_* mode."
+            "byte_align_ctkd, topk_byte_align_ctkd, simct, or an opt-in mp_opd_* mode."
         )
     
     environment_rollout = bool(args.rollout.alfworld_config)
