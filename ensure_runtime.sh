@@ -190,6 +190,7 @@ value = torch.tensor([1.0], device='cuda')
 assert value.cpu().item() == 1.0
 print(json.dumps({'versions': versions, 'python': sys.version.split()[0],
                   'cuda': torch.version.cuda, 'gpu': torch.cuda.get_device_name(0),
+                  'cuda_visible_devices': os.environ.get('CUDA_VISIBLE_DEVICES'),
                   'check': 'imports + CUDA memory roundtrip; no training or full kernel suite'}))
 '''
 
@@ -201,11 +202,18 @@ def main(argv=None):
     parser.add_argument('--prefix', type=pathlib.Path,
         default=pathlib.Path(os.environ.get('CTOPD_RUNTIME_PREFIX', '/opt/ctopd-b200')))
     parser.add_argument('--archive', type=pathlib.Path)
+    parser.add_argument('--gpu', help='One allocated physical GPU index or GPU UUID; sets CUDA_VISIBLE_DEVICES for the check and forwarded command')
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--install-only', action='store_true', help='Restore without a GPU check; reports INSTALLED_UNCHECKED')
     mode.add_argument('--check-only', action='store_true', help='Check an existing managed runtime; never extract')
     parser.add_argument('python_args', nargs=argparse.REMAINDER, help='After --, execute these Python arguments through the runtime wrapper')
     args = parser.parse_args(argv)
+    runtime_env = os.environ.copy()
+    if args.gpu is not None:
+        selected = args.gpu.strip()
+        if not selected or ',' in selected or not (selected.isdecimal() or (selected.startswith('GPU-') and len(selected) > 4)):
+            raise ValueError('--gpu must select exactly one allocated GPU index or UUID')
+        runtime_env['CUDA_VISIBLE_DEVICES'] = selected
     forwarded = args.python_args[1:] if args.python_args[:1] == ['--'] else args.python_args
     if args.install_only and forwarded:
         raise ValueError('--install-only cannot also execute a runtime command')
@@ -254,7 +262,7 @@ def main(argv=None):
         if args.install_only:
             print('RUNTIME_INSTALLED_UNCHECKED=' + str(prefix), flush=True)
         else:
-            env = os.environ.copy()
+            env = runtime_env.copy()
             env.update(PYTHONPATH='', HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1', PYTHONNOUSERSITE='1')
             output = subprocess.check_output(['bash', str(prefix / 'python-b200.sh'), '-c', PROBE], env=env, text=True)
             result = json.loads(output.strip().splitlines()[-1])
@@ -264,7 +272,7 @@ def main(argv=None):
             print('RUNTIME_READY=' + str(prefix), flush=True)
         print('RUNTIME_PYTHON_WRAPPER=' + str(prefix / 'python-b200.sh'), flush=True)
     if forwarded:
-        os.execvpe('bash', ['bash', str(prefix / 'python-b200.sh'), *forwarded], os.environ.copy())
+        os.execvpe('bash', ['bash', str(prefix / 'python-b200.sh'), *forwarded], runtime_env)
 
 
 if __name__ == '__main__':

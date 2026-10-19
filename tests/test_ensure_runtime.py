@@ -73,6 +73,33 @@ class EnsureRuntimeTests(unittest.TestCase):
         ast.parse(INLINE)
         ast.parse(self.code['PROBE'])
 
+    def test_selected_gpu_reaches_check_and_forwarded_command(self):
+        self.archive_with()
+        self.run_ensure('--install-only')
+        probes, forwarded = [], []
+
+        def check_output(_command, *, env, text):
+            probes.append(env.copy())
+            return '{}\n'
+
+        def execvpe(_program, _argv, env):
+            forwarded.append(env.copy())
+
+        self.code['subprocess'] = types.SimpleNamespace(check_output=check_output)
+        self.code['os'] = types.SimpleNamespace(environ={'CUDA_VISIBLE_DEVICES': '3'}, execvpe=execvpe)
+        for selection, expected in [(None, '3'), ('2', '2'), ('GPU-fixture-uuid', 'GPU-fixture-uuid')]:
+            options = ['--check-only'] + (['--gpu', selection] if selection else [])
+            self.run_ensure(*options, '--', '-c', 'pass')
+            self.assertEqual(probes[-1]['CUDA_VISIBLE_DEVICES'], expected)
+            self.assertEqual(forwarded[-1]['CUDA_VISIBLE_DEVICES'], expected)
+        self.assertEqual(self.code['os'].environ['CUDA_VISIBLE_DEVICES'], '3')
+
+    def test_gpu_selection_rejects_empty_or_multiple_devices_before_install(self):
+        for selection in ['', '0,2', '-1', 'invalid']:
+            with self.assertRaisesRegex(ValueError, 'exactly one allocated GPU'):
+                self.run_ensure('--gpu=' + selection, '--install-only')
+        self.assertFalse(self.prefix.parent.exists())
+
     def test_both_required_host_baselines_and_older_rejection(self):
         isolated = {'__name__': 'host_test'}
         exec(compile(INLINE, 'ensure_runtime.sh:inline', 'exec'), isolated)
