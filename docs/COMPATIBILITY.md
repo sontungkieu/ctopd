@@ -24,6 +24,6 @@ The overlay retains Python/Torch/CUDA versions and the research implementation. 
 
 The helper selects the overlay for glibc 2.35 through 2.38 and keeps the original v4 path for glibc >= 2.39. Only 2.35 and 2.39 have live baseline evidence. It caches the overlay once on shared storage, checks its pinned bytes/hash, quarantines original host libraries inside the new installation, and records all substituted file hashes. The base archive is unchanged and does not need another download.
 
-Preserve the original Ubuntu 24 path. The helper must require the verified overlay on older supported glibc hosts, rather than treating the unpatched v4 package as compatible after lowering a version check. Existing incompatible installs must be preserved and require a fresh explicit prefix, so active runtime files are not changed in place.
+Preserve the original Ubuntu 24 path. The helper must require the verified overlay on older supported glibc hosts, rather than treating the unpatched v4 package as compatible after lowering a version check. Existing incompatible installs are preserved. The current helper automatically chooses `/opt/ctopd-b200-u22` when a known original v4 occupies `/opt/ctopd-b200` on an older host; explicit prefix overrides still fail if incompatible. No active runtime is patched in place.
 
 The exact company node is a reported reproduction target, not a lease or proof of available GPU capacity. Live free-GPU claims from earlier transcripts are not allocation evidence.

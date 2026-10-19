@@ -120,6 +120,54 @@ class EnsureRuntimeTests(unittest.TestCase):
             self.run_ensure('--install-only')
         self.assertEqual((self.prefix / self.code['RECEIPT']).read_bytes(), before)
 
+    def test_automatic_prefix_on_both_hosts_preserves_original_and_reuses_u22(self):
+        import os
+        from unittest.mock import patch
+        base = self.prefix
+        original_default = self.code['default_prefix']
+        self.code['default_prefix'] = lambda host: original_default(host, base)
+        self.make_overlay()
+        with patch.dict(os.environ, {}, clear=True):
+            def automatic(*options):
+                with contextlib.redirect_stdout(io.StringIO()) as output:
+                    self.code['main'](['--root', str(self.root), '--install-only', *options])
+                return output.getvalue()
+            automatic()  # Ubuntu 24 original v4.
+            before = (base / self.code['RECEIPT']).read_bytes()
+            self.code['check_host'] = lambda: (2, 35)
+            sibling = base.with_name(base.name + '-u22')
+            self.assertIn(str(sibling), automatic())
+            self.assertEqual((base / self.code['RECEIPT']).read_bytes(), before)
+            self.assertTrue((sibling / 'glibc235-overlay-manifest.json').is_file())
+            self.archive.unlink(); self.overlay.unlink()
+            self.assertIn('REUSING_RUNTIME=' + str(sibling), automatic())
+            self.code['check_host'] = lambda: (2, 39)
+            self.assertIn('REUSING_RUNTIME=' + str(base), automatic())
+
+    def test_automatic_fresh_ubuntu22_uses_base_with_overlay_and_forwards_selected_env(self):
+        from unittest.mock import patch
+        import os
+        self.make_overlay()
+        self.code['check_host'] = lambda: (2, 35)
+        choose = self.code['default_prefix']
+        self.code['default_prefix'] = lambda host: choose(host, self.prefix)
+        forwarded = []
+        with patch.dict(os.environ, {}, clear=True), patch.object(os,'execvpe',lambda *a:forwarded.append(a[2])), \
+                patch.object(self.code['subprocess'],'check_output',return_value='{}\n'):
+            self.code['main'](['--root', str(self.root), '--gpu', '3', '--', '-c', 'pass'])
+        env = forwarded[0]
+        self.assertEqual(env['CTOPD_RUNTIME_PREFIX'], str(self.prefix))
+        self.assertEqual(env['CTOPD_ROOT'], str(self.root))
+        self.assertEqual(env['CUDA_VISIBLE_DEVICES'], '3')
+        self.assertTrue((self.prefix / 'glibc235-overlay-manifest.json').is_file())
+
+    def test_standalone_and_launcher_prefix_policy_have_identical_ast(self):
+        from tools import runtime_paths
+        policy = ast.parse((ROOT / 'tools/runtime_paths.py').read_text())
+        select = lambda tree: ast.dump(next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name=='default_prefix'), include_attributes=False)
+        self.assertEqual(select(ast.parse(INLINE)), select(policy))
+        self.assertEqual(self.code['EXPECTED_SHA'], runtime_paths.EXPECTED_SHA)
+
     def test_glibc235_requires_real_pinned_overlay(self):
         self.archive_with()
         self.code['check_host'] = lambda: (2, 35)

@@ -1,5 +1,7 @@
 """Offline checks for the real-workload launcher; no ML imports or GPU required."""
 import ast
+import contextlib
+import io
 import importlib.util
 import json
 import pathlib
@@ -8,6 +10,7 @@ import sys
 import tempfile
 import types
 import unittest
+from unittest.mock import patch
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location('launcher', ROOT / 'tools/launch_single_b200.py')
@@ -122,6 +125,46 @@ class LauncherTests(unittest.TestCase):
                 '--root', str(destination), '--dry-run'], text=True)
             self.assertEqual(json.loads(raw)['flags']['max_steps'], 100)
             self.assertFalse(destination.exists())
+
+    def test_runtime_selector_respects_overrides_and_reuses_compatible_sibling(self):
+        from tools.runtime_paths import resolve_runtime, EXPECTED_SHA
+        with tempfile.TemporaryDirectory() as folder:
+            base=pathlib.Path(folder)/'runtime'; sibling=base.with_name('runtime-u22')
+            self.assertEqual(resolve_runtime(environ={},host_glibc=(2,35),base=base),base)
+            base.mkdir()
+            (base/'.ctopd-runtime.json').write_text(json.dumps({'archive_sha256':EXPECTED_SHA}))
+            self.assertEqual(resolve_runtime(environ={},host_glibc=(2,35),base=base),sibling)
+            self.assertEqual(resolve_runtime(environ={},host_glibc=(2,39),base=base),base)
+            self.assertEqual(resolve_runtime(base,environ={},host_glibc=(2,35)),base)
+            self.assertEqual(resolve_runtime(environ={'CTOPD_RUNTIME_PREFIX':str(base)},host_glibc=(2,35)),base)
+            (base/'.ctopd-runtime.json').unlink(); base.rmdir(); sibling.mkdir()
+            self.assertEqual(resolve_runtime(environ={},host_glibc=(2,39),base=base),sibling)
+
+    def test_runtime_selector_preserves_unknown_installs_and_rejects_symlinks(self):
+        from tools.runtime_paths import resolve_runtime
+        with tempfile.TemporaryDirectory() as folder:
+            base=pathlib.Path(folder)/'runtime'; base.mkdir()
+            (base/'keep').write_text('unmanaged')
+            self.assertEqual(resolve_runtime(environ={},host_glibc=(2,35),base=base),base)
+            self.assertEqual((base/'keep').read_text(),'unmanaged')
+            link=pathlib.Path(folder)/'link'
+            try: link.symlink_to(base,target_is_directory=True)
+            except OSError: self.skipTest('symlink unavailable on this host')
+            with self.assertRaisesRegex(ValueError,'non-symlink'): resolve_runtime(link,environ={})
+
+    def test_launcher_runtime_ensure_inherits_gpu_and_runs_only_for_real_launch(self):
+        env={'CUDA_VISIBLE_DEVICES':'GPU-fixture-assigned'}
+        plan=self.plan('--runtime','/opt/custom-runtime')
+        with patch.object(launcher.subprocess,'run') as run:
+            launcher.ensure_plan_runtime(plan,env)
+        call=run.call_args
+        self.assertIn(str(ROOT/'ensure_runtime.sh'),call.args[0])
+        self.assertEqual(call.kwargs['env']['CUDA_VISIBLE_DEVICES'],'GPU-fixture-assigned')
+        self.assertEqual(env['CTOPD_RUNTIME_PREFIX'],plan['runtime'])
+        self.assertEqual(env['CTOPD_ROOT'],plan['root'])
+        with patch.object(launcher,'ensure_plan_runtime') as ensure, contextlib.redirect_stdout(io.StringIO()):
+            launcher.main(['--dry-run','--run-id','preview-auto-runtime'])
+        ensure.assert_not_called()
 
     def test_existing_output_and_path_traversal_are_refused(self):
         with self.assertRaises(ValueError):

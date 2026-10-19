@@ -10,6 +10,10 @@ Use the existing [qualified B200 runtime on Hugging Face](https://huggingface.co
 
 On a new company node, run the standalone `ensure_runtime.sh`: it restores the pinned shared archive into node-local `/opt/ctopd-b200` if absent, otherwise checks and reuses the existing installation. Ubuntu 22.04/glibc 2.35 automatically uses a verified 30.6 MB compatibility overlay; Ubuntu 24.04/glibc 2.39 retains the original runtime. It preserves unknown/broken installations, uses no `pip`, and starts no training. See [compatibility requirements and evidence](docs/COMPATIBILITY.md) and the runtime instructions for shared-path placement, GPU visibility, and `--install-only` before allocation.
 
+The same `bash ensure_runtime.sh --gpu <allocated GPU>` command serves both OS
+versions and automatically selects the compatible prefix. Real single-B200
+launches also run ensure automatically; `--runtime` is only an override.
+
 For a full-workload, one-run-per-B200 adaptation, use [the single-B200 launcher](docs/SINGLE_B200.md). It keeps 512-response rollout/optimizer batches, 8,192 generated tokens, 100 training iterations and 32-sample MATH500 evaluation. There is no reduced-workload mode. Single-B200 full training and paper metric agreement remain unvalidated.
 
 An opt-in [MP-OPD port](docs/MP_OPD.md) adds Atomic, Fixed1–5, Random1–2/2–5,

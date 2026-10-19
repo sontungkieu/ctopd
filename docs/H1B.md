@@ -102,11 +102,10 @@ From the committed source root, with the allocated GPU exposed explicitly:
 
 ```bash
 export PYTHONPATH="$PWD"
-RUNTIME=/opt/ctopd-b200-u22
 ROOT=/workspace/storage-shared/nlp/tungks/ctopd_all
 S="$ROOT/models/Llama-3.2-3B-Instruct"
 T="$ROOT/models/Qwen2.5-7B-Instruct"
-python3 tools/launch_single_b200.py --algorithm h1b-c --runtime "$RUNTIME" --dry-run
+python3 tools/launch_single_b200.py --algorithm h1b-c --dry-run
 ```
 
 If an old Strict archive lacks `tea_prompt`, recover it without regenerating any
@@ -115,7 +114,7 @@ parquet pool and demands an exact, unambiguous student-prompt match. It preserve
 finish reasons and never fabricates missing sampled IDs:
 
 ```bash
-bash "$RUNTIME/python-b200.sh" -m tools.h1b.enrich_archive \
+bash ./ensure_runtime.sh -- -m tools.h1b.enrich_archive \
   --archive "$OLD_ARCHIVE" --dataset "$ROOT/data/Train/math_code_20k/train.parquet" \
   --student "$S" --teacher "$T" --output "$ROOT/h1b-enriched.jsonl"
 ARCHIVE="$ROOT/h1b-enriched.jsonl"
@@ -128,7 +127,7 @@ T1/T3/T9 real-input validation (TEXTS must contain at least 10,000 texts, ARCHIV
 at least 500 real responses, with the production prompt/truncation metadata):
 
 ```bash
-bash "$RUNTIME/python-b200.sh" -m tools.h1b.validate_alignment \
+bash ./ensure_runtime.sh -- -m tools.h1b.validate_alignment \
   --student "$S" --teacher "$T" --texts "$TEXTS" --archive "$ARCHIVE" \
   --output "$ROOT/h1b-alignment.json"
 ```
@@ -136,10 +135,10 @@ bash "$RUNTIME/python-b200.sh" -m tools.h1b.validate_alignment \
 M2 trunk table, followed by M3 bounded exhaustive checking on 200 responses:
 
 ```bash
-bash "$RUNTIME/python-b200.sh" -m tools.h1b.exact_strprob \
+bash ./ensure_runtime.sh -- -m tools.h1b.exact_strprob \
   --student "$S" --teacher "$T" --archive "$ARCHIVE" --limit 512 \
   --trunk-only --output "$ROOT/h1b-trunk.jsonl"
-bash "$RUNTIME/python-b200.sh" -m tools.h1b.exact_strprob \
+bash ./ensure_runtime.sh -- -m tools.h1b.exact_strprob \
   --student "$S" --teacher "$T" --archive "$ARCHIVE" --limit 200 \
   --prune 1e-6 --max-nodes 10000 --output "$ROOT/h1b-exact.jsonl"
 ```
@@ -162,7 +161,7 @@ T10 has a separate diagnostic launcher so the standard 100-update presets remain
 unchanged. Preview first; `--execute` actually consumes the allocated company GPU:
 
 ```bash
-python3 -m tools.h1b.canary --algorithm h1b-c --runtime "$RUNTIME" \
+python3 -m tools.h1b.canary --algorithm h1b-c \
   --run-id canary-h1b-c-s42 --root "$ROOT"
 # Repeat for each of the five presets, adding --execute only after allocation.
 ```
@@ -171,13 +170,13 @@ Gradient replay uses a fixed 4,096-response archive; it never creates that archi
 Start with 128 responses (two groups of 64) to measure memory/time and sketch error:
 
 ```bash
-bash "$RUNTIME/python-b200.sh" -m tools.h1b.grad_replay \
+bash ./ensure_runtime.sh -- -m tools.h1b.grad_replay \
   --student "$S" --teacher "$T" --archive "$REPLAY_ARCHIVE" \
   --limit 128 --output "$ROOT/h1b-replay-probe"
-bash "$RUNTIME/python-b200.sh" -m tools.h1b.validate_sketch \
+bash ./ensure_runtime.sh -- -m tools.h1b.validate_sketch \
   --replay "$ROOT/h1b-replay-probe" --output "$ROOT/h1b-sketch-gate.json"
 # After sizing, use --limit 4096, --buckets 0,3 and a fresh output directory.
-bash "$RUNTIME/python-b200.sh" -m tools.h1b.fit_cb \
+bash ./ensure_runtime.sh -- -m tools.h1b.fit_cb \
   --replay "$REPLAY_DIR" --bootstrap 200 --output "$ROOT/h1b-curves.json"
 ```
 

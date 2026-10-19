@@ -44,6 +44,29 @@ def digest(path):
     return result.hexdigest()
 
 
+def default_prefix(host_glibc, base=pathlib.Path('/opt/ctopd-b200')):
+    """Choose a node-local prefix without touching either existing install.
+
+    Keep in sync with tools/runtime_paths.py (AST parity tested). This helper
+    stays self-contained when copied into the shared ctopd_all directory.
+    """
+    legacy = base.with_name(base.name + '-u22')
+    if base.exists() or base.is_symlink():
+        if base.is_symlink():
+            return base  # Let the caller reject an unsafe explicit target.
+        try:
+            receipt = json.loads((base / '.ctopd-runtime.json').read_text())
+        except (OSError, ValueError):
+            return base  # Preserve/reject an unmanaged or malformed install.
+        if (isinstance(receipt, dict) and receipt.get('archive_sha256') == EXPECTED_SHA
+                and host_glibc < (2, 39) and not receipt.get('compatibility_overlay')):
+            return legacy  # Known original v4 on an older host: use a sibling.
+        return base
+    if legacy.exists() or legacy.is_symlink():
+        return legacy  # Full identity/integrity checks still run before reuse.
+    return base
+
+
 def check_host():
     libc, version = platform.libc_ver()
     parsed = tuple(map(int, version.split('.')[:2])) if libc == 'glibc' else (0, 0)
@@ -200,7 +223,7 @@ def main(argv=None):
     parser.add_argument('--root', type=pathlib.Path,
         default=pathlib.Path(os.environ.get('CTOPD_ROOT', '/workspace/storage-shared/nlp/tungks/ctopd_all')))
     parser.add_argument('--prefix', type=pathlib.Path,
-        default=pathlib.Path(os.environ.get('CTOPD_RUNTIME_PREFIX', '/opt/ctopd-b200')))
+        help='Override automatic prefix selection (or set CTOPD_RUNTIME_PREFIX)')
     parser.add_argument('--archive', type=pathlib.Path)
     parser.add_argument('--gpu', help='One allocated physical GPU index or GPU UUID; sets CUDA_VISIBLE_DEVICES for the check and forwarded command')
     mode = parser.add_mutually_exclusive_group()
@@ -217,14 +240,17 @@ def main(argv=None):
     forwarded = args.python_args[1:] if args.python_args[:1] == ['--'] else args.python_args
     if args.install_only and forwarded:
         raise ValueError('--install-only cannot also execute a runtime command')
-    raw = args.prefix.expanduser()
+    host_glibc = check_host()
+    configured = args.prefix or runtime_env.get('CTOPD_RUNTIME_PREFIX')
+    raw = pathlib.Path(configured).expanduser() if configured else default_prefix(host_glibc)
     if not raw.is_absolute() or raw.is_symlink():
         raise ValueError('Prefix must be an absolute non-symlink directory')
     prefix = raw.resolve()
     if len(prefix.parts) < 3 or prefix == args.root.expanduser().resolve():
         raise ValueError('Refusing an unsafe runtime prefix: ' + str(prefix))
-    host_glibc = check_host()
     needs_compat = host_glibc < (2, 39)
+    runtime_env['CTOPD_RUNTIME_PREFIX'] = str(prefix)
+    runtime_env['CTOPD_ROOT'] = str(args.root.expanduser().resolve())
     if args.check_only and not prefix.exists():
         raise FileNotFoundError('Runtime is absent; run without --check-only to restore it')
     prefix.parent.mkdir(parents=True, exist_ok=True)

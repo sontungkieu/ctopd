@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-20",
+  "baseline_commit": "2bf0f47109fb9435232d77c1509eba0d894910ea",
+  "scope": "Automatic compatible prefix selection, child environment handoff and launcher ensure; no runtime payload or numerical algorithm changes",
+  "base_archive_sha256": "084c321c0b7af1cd3a36d12a595c623567d4a37525aa0eecbc3933aa7f9b15c3",
+  "helper_sha256": "734a4516252ab6d010ca421f20773a400f198895dbe8c7a00e6fc552f6f074f4",
+  "checks": {
+    "runtime_fixture_suite": {"passed": 20, "elapsed_seconds": 0.301},
+    "launcher_offline_suite": {"passed": 14, "elapsed_seconds": 0.497},
+    "full_cpu_suite": {"passed": 110, "skipped": 0, "elapsed_seconds": 90.691},
+    "command": "TORCH_COMPILE_DISABLE=1 OMP_NUM_THREADS=1 python -m unittest discover -s tests -v",
+    "bash_syntax": "bash -n ensure_runtime.sh: pass",
+    "whitespace": "git diff --check: pass"
+  },
+  "regressions": [
+    "Fresh Ubuntu 22 fixture restores the base prefix plus verified overlay",
+    "Ubuntu 22 with original v4 preserves every original receipt byte and restores/reuses a compatible sibling",
+    "Ubuntu 24 reuses the original prefix; an existing compatible sibling is discoverable if the base is absent",
+    "Explicit CLI/environment prefixes remain overrides; incompatible explicit targets are rejected",
+    "Unknown selected installations are preserved; selected symlinks are rejected",
+    "Standalone helper and launcher share AST-identical default selection policy and archive pin",
+    "Selected CTOPD_RUNTIME_PREFIX and CTOPD_ROOT reach the forwarded Python process with the assigned GPU mask",
+    "Real launcher ensure keeps the assigned visibility mask; dry-run never calls ensure or writes files",
+    "H1b canary uses the same launcher policy and does not require a runtime flag",
+    "All existing Strict, SimCT, MP, ALIGN, TRUST and H1b CPU tests pass"
+  ],
+  "qualification": "Offline fixtures and CPU regression only; this new entrypoint flow has not run on a company node/B200",
+  "compute": "No GPU job, new archive download, dependency install or runtime rebuild"
+}

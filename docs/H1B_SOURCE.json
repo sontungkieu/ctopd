@@ -48,7 +48,7 @@
     },
     {
       "path": "tools/h1b/canary.py",
-      "sha256": "f106d45d41024386df56e8ccc8da74c56247edfeb9a2c35879f9fe8712512e93"
+      "sha256": "085b4ea8a7fafbb165b4e4f237dc1224dfb25065bd80829dfe9cd8b530e7fdbf"
     },
     {
       "path": "tools/h1b/common.py",
@@ -117,5 +117,13 @@
       "path": "kdflow/loss/chunked_loss.py"
     }
   ],
-  "baseline_commit": "0eeed4ca2b0d7b07dd50076e35d81f030a3b9f2d"
+  "baseline_commit": "0eeed4ca2b0d7b07dd50076e35d81f030a3b9f2d",
+  "runtime_entrypoint_update": {
+    "updated_sha256": "085b4ea8a7fafbb165b4e4f237dc1224dfb25065bd80829dfe9cd8b530e7fdbf",
+    "date": "2026-10-20",
+    "previous_sha256": "f106d45d41024386df56e8ccc8da74c56247edfeb9a2c35879f9fe8712512e93",
+    "scope": "Automatic runtime selection/ensure only; H1b numerical algorithm and kernels unchanged",
+    "baseline_commit": "2bf0f47109fb9435232d77c1509eba0d894910ea",
+    "path": "tools/h1b/canary.py"
+  }
 }

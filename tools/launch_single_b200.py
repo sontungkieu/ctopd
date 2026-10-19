@@ -15,6 +15,11 @@ import shlex
 import socket
 import subprocess
 
+try:
+    from tools.runtime_paths import resolve_runtime
+except ModuleNotFoundError:  # Direct invocation: python3 tools/launch_single_b200.py
+    from runtime_paths import resolve_runtime
+
 SOURCE = pathlib.Path(__file__).resolve().parents[1]
 ARCHIVE_SHA = '084c321c0b7af1cd3a36d12a595c623567d4a37525aa0eecbc3933aa7f9b15c3'
 H1B_ARMS={'h1b-a':'a','h1b-b':'b','h1b-b-bl':'b_bl','h1b-c-str':'c_str','h1b-c':'c'}
@@ -23,9 +28,9 @@ H1B_ARMS={'h1b-a':'a','h1b-b':'b','h1b-b-bl':'b_bl','h1b-c-str':'c_str','h1b-c':
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--root', type=pathlib.Path,
-                   default=pathlib.Path('/workspace/storage-shared/nlp/tungks/ctopd_all'))
+                   default=pathlib.Path(os.environ.get('CTOPD_ROOT', '/workspace/storage-shared/nlp/tungks/ctopd_all')))
     p.add_argument('--runtime', type=pathlib.Path,
-                   help='Installed prefix; default CTOPD_RUNTIME_PREFIX or /opt/ctopd-b200')
+                   help='Override automatic runtime selection (or set CTOPD_RUNTIME_PREFIX)')
     p.add_argument('--algorithm', choices=['strict-top16', 'strict-full', 'simct', 'simct_paper', 'mp-atomic',
         'mp-fixed1', 'mp-fixed2', 'mp-fixed3', 'mp-fixed4', 'mp-fixed5',
         'mp-random1-2', 'mp-random2-5', 'mp-grass-chunk', 'mp-align', 'mp-align-new',
@@ -53,7 +58,7 @@ def build_plan(args):
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,95}', run_id):
         raise ValueError('run-id must be a single directory name starting with a letter or digit')
     root = args.root.expanduser().resolve()
-    runtime = (args.runtime or pathlib.Path(os.environ.get('CTOPD_RUNTIME_PREFIX', '/opt/ctopd-b200'))).expanduser().resolve()
+    runtime = resolve_runtime(args.runtime)
     output = root / 'runs' / run_id
     flags = {
         'num_nodes': 1, 'num_gpus_per_node': 1, 'backend': 'fsdp2',
@@ -110,7 +115,7 @@ def build_plan(args):
     command = ['bash', str(runtime / 'python-b200.sh'), '-u', '-m', 'kdflow.cli.train_kd_on_policy']
     for key, value in flags.items():
         command.extend(['--' + key, str(value)])
-    return {'algorithm': args.algorithm, 'output': str(output), 'runtime': str(runtime),
+    return {'algorithm': args.algorithm, 'root': str(root), 'output': str(output), 'runtime': str(runtime),
             'source': str(SOURCE), 'flags': flags, 'command': command,
             'gradient_accumulation_microsteps': 512 // args.micro_batch,
             'expected_runtime_archive_sha256': ARCHIVE_SHA,
@@ -140,9 +145,9 @@ def run_environment():
     return env
 
 
-def validate_files(plan):
+def validate_files(plan, require_runtime=True):
     flags = plan['flags']
-    required = [pathlib.Path(plan['runtime']) / 'python-b200.sh']
+    required = [pathlib.Path(plan['runtime']) / 'python-b200.sh'] if require_runtime else []
     required += [pathlib.Path(flags[key]) for key in ['train_dataset_path', 'eval_math_dataset_path']]
     for key in ['student_name_or_path', 'teacher_name_or_path']:
         model = pathlib.Path(flags[key])
@@ -163,18 +168,27 @@ def validate_files(plan):
         raise FileExistsError('Choose a new run-id; refusing existing output: ' + plan['output'])
 
 
+def ensure_plan_runtime(plan, env):
+    """Called only on an actual launch, after source/data/output checks."""
+    env['CTOPD_RUNTIME_PREFIX'] = plan['runtime']
+    env['CTOPD_ROOT'] = plan['root']
+    subprocess.run(['bash', str(SOURCE / 'ensure_runtime.sh'), '--root', plan['root'],
+                    '--prefix', plan['runtime']], env=env, check=True)
+
+
 def main(argv=None):
     args = parser().parse_args(argv)
     plan = build_plan(args)
     if args.dry_run:
         print(json.dumps(plan, indent=2))
         return
-    validate_files(plan)
+    validate_files(plan, require_runtime=False)
     env = run_environment()
     commit = subprocess.check_output(['git', '-C', str(SOURCE), 'rev-parse', 'HEAD'], text=True).strip()
     dirty = subprocess.check_output(['git', '-C', str(SOURCE), 'status', '--porcelain'], text=True).strip()
     if dirty:
         raise RuntimeError('Commit source changes before starting a recorded reproduction run')
+    ensure_plan_runtime(plan, env)
     # This validates real model/data availability and GPU visibility, not a toy training workload.
     probe = '''import json, pathlib, torch, pyarrow.parquet as pq
 assert torch.cuda.device_count() == 1, 'Expose exactly the one GPU allocated to this run'

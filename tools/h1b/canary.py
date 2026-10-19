@@ -7,17 +7,20 @@ import re
 from pathlib import Path
 import subprocess
 import time
-from tools.launch_single_b200 import parser,build_plan,validate_files,run_environment,H1B_ARMS
+from tools.launch_single_b200 import parser,build_plan,validate_files,run_environment,ensure_plan_runtime,H1B_ARMS
 
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--algorithm',choices=H1B_ARMS,required=True); p.add_argument('--runtime',required=True)
+    p.add_argument('--algorithm',choices=H1B_ARMS,required=True); p.add_argument('--runtime')
     p.add_argument('--root',default='/workspace/storage-shared/nlp/tungks/ctopd_all')
     p.add_argument('--run-id',required=True); p.add_argument('--execute',action='store_true')
     args=p.parse_args(argv)
     if not args.run_id.startswith('canary-h1b-'): p.error('Use a distinct canary-h1b-* run ID')
-    plan=build_plan(parser().parse_args(['--algorithm',args.algorithm,'--runtime',args.runtime,'--root',args.root,'--run-id',args.run_id]))
+    options=['--algorithm',args.algorithm,'--root',args.root,'--run-id',args.run_id]
+    if args.runtime: options+=['--runtime',args.runtime]
+    plan=build_plan(parser().parse_args(options))
+    args.runtime=plan['runtime']
     plan['flags']['max_steps']=5
     plan['qualification']='T10 five-step diagnostic only; full 512/8192 workload per step; not reproduction'
     command=['bash',str(Path(args.runtime)/'python-b200.sh'),'-u','-m','kdflow.cli.train_kd_on_policy']
@@ -28,8 +31,9 @@ def main(argv=None):
     source=Path(plan['source'])
     if subprocess.check_output(['git','-C',str(source),'status','--porcelain'],text=True).strip():
         raise RuntimeError('Commit source before diagnostic execution')
-    validate_files(plan)
+    validate_files(plan, require_runtime=False)
     env=run_environment()
+    ensure_plan_runtime(plan,env)
     probe="import torch; assert torch.cuda.device_count()==1; assert 'B200' in torch.cuda.get_device_name(0); print(torch.cuda.get_device_name(0))"
     subprocess.run(['bash',str(Path(args.runtime)/'python-b200.sh'),'-c',probe],env=env,check=True)
     root=Path(plan['output']); root.mkdir(parents=True,exist_ok=False)

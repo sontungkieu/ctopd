@@ -13,26 +13,23 @@ Download/install directly on the target host using the pinned HF instructions. R
 
 `ensure_runtime.sh` is self-contained and can be copied from this checkout into `/workspace/storage-shared/nlp/tungks/ctopd_all/ensure_runtime.sh`. The archive stays on shared storage; the default installed prefix `/opt/ctopd-b200` belongs to the current node/pod. Shared files do not imply that another node has the runtime installed.
 
+The **same command works on Ubuntu 22 and 24**. No OS flag or manual prefix is
+needed. It detects glibc and reuses a managed installation; on Ubuntu 22, a known
+original unpatched v4 in `/opt/ctopd-b200` is preserved while a compatible sibling
+`/opt/ctopd-b200-u22` is restored/reused automatically. A clean host still uses
+`/opt/ctopd-b200` with the overlay applied when needed. Explicit `--prefix` or
+`CTOPD_RUNTIME_PREFIX` remain overrides and are never silently changed.
+
 ```bash
 ROOT=/workspace/storage-shared/nlp/tungks/ctopd_all
 cp ensure_runtime.sh "$ROOT/ensure_runtime.sh"  # run once from this checkout
-bash "$ROOT/ensure_runtime.sh"
+bash "$ROOT/ensure_runtime.sh" --gpu 2  # substitute your allocated GPU; omit if scheduler exposes one
 ```
 
-Alternatively, download the same standalone helper through the public HF mirror without GitHub authentication (no runtime archive download is repeated):
-
-```bash
-set -euo pipefail
-cd /workspace/storage-shared/nlp/tungks/ctopd_all
-PROXY="${HTTPS_PROXY:-${HTTP_PROXY:-http://10.30.154.118:80}}"
-BASE=https://huggingface.co/datasets/codemaivanngu/cross-tokenizer-opd-b200-runtime/resolve/4f12864097bb6f1092d27bf41d9e8a6357dcf2af
-curl -fL --retry 3 --proxy "$PROXY" --noproxy "" "$BASE/ensure_runtime.sh" -o ensure_runtime.sh
-curl -fL --retry 3 --proxy "$PROXY" --noproxy "" "$BASE/ensure_runtime.SHA256SUMS" -o ensure_runtime.SHA256SUMS
-sha256sum -c ensure_runtime.SHA256SUMS
-bash ensure_runtime.sh
-```
-
-Published helper SHA-256: `5274a6bae10ae5e83fa89550087dd4e901483375e779d2725832929f020529de`. Anonymous HF download was checked byte-for-byte against the source; this verifies delivery, not execution on the company node.
+Use the helper from the current committed source (or its pinned GitHub commit).
+The historical HF helper at revision `4f12864097bb6f1092d27bf41d9e8a6357dcf2af`
+predates automatic prefix selection. Replacing that small script is sufficient;
+the runtime archive and compatibility overlay pins have not changed.
 
 Run the last line on each new node, inside a pod exposing the one B200 allocated for this check. With no GPU allocated yet, use `--install-only`; it reports `RUNTIME_INSTALLED_UNCHECKED`, not GPU readiness. With an existing runtime, `--check-only` checks without extracting. `--help` lists options.
 
@@ -41,14 +38,14 @@ Run the last line on each new node, inside a pod exposing the one B200 allocated
 The helper does not select physical GPU 0 by default. It retains the caller's `CUDA_VISIBLE_DEVICES`; CUDA's device 0 in the probe is the first device in that filtered view. Every helper version supports:
 
 ```bash
-CUDA_VISIBLE_DEVICES=2 bash ensure_runtime.sh --prefix /opt/ctopd-b200-u22 --check-only
+CUDA_VISIBLE_DEVICES=2 bash ensure_runtime.sh --check-only
 ```
 
 The current source helper also supports an explicit physical GPU index or UUID:
 
 ```bash
-bash ensure_runtime.sh --gpu 2 --prefix /opt/ctopd-b200-u22 --check-only
-bash ensure_runtime.sh --gpu GPU-your-allocated-uuid --prefix /opt/ctopd-b200-u22 --check-only
+bash ensure_runtime.sh --gpu 2 --check-only
+bash ensure_runtime.sh --gpu GPU-your-allocated-uuid --check-only
 ```
 
 `--gpu` explicitly replaces the inherited visibility mask for the check and any Python command passed after `--`. Without it, the inherited mask is preserved. It does not change the parent shell, allocate a GPU, or scan for an idle device. Choose the index/UUID assigned to you; leave the flag unset when the scheduler already exposes the correct single GPU. Keep the same visibility setting in a separately launched training command. The readiness receipt records the visibility mask.
@@ -60,25 +57,38 @@ export CTOPD_RUNTIME_PREFIX="/var/tmp/ctopd-b200-$UID"
 bash "$ROOT/ensure_runtime.sh"
 ```
 
-Concurrent setup calls use a lock for the same prefix. Reuse checks its archive-identity receipt, wrapper/Python/nvcc hashes and every substituted overlay file; it does not reread the 16.5 GB archive. Default readiness additionally verifies pinned package versions (including the router), NVRTC headers, imports and a one-element CUDA memory roundtrip on the allocated B200. This is a basic runtime check, not full kernel qualification or a training result. Existing incompatible/unmanaged prefixes are preserved. An already-installed original v4 on glibc 2.35 requires a fresh explicit node-local `--prefix`; the helper does not modify an active installation in place. There is no recursive-delete fallback.
+Concurrent setup calls use a lock for the same prefix. Reuse checks its archive-identity receipt, wrapper/Python/nvcc hashes and every substituted overlay file; it does not reread the 16.5 GB archive. Default readiness additionally verifies pinned package versions (including the router), NVRTC headers, imports and a one-element CUDA memory roundtrip on the allocated B200. This is a basic runtime check, not full kernel qualification or a training result. Existing incompatible/unmanaged prefixes are preserved. Automatic selection can use the known compatible sibling; unknown or damaged selected installs still fail without replacement. The helper does not modify an active installation in place and has no recursive-delete fallback.
 
 The script can also execute a Python command after readiness:
 
 ```bash
-bash "$ROOT/ensure_runtime.sh" -- -c 'import torch; print(torch.__version__)'
+bash "$ROOT/ensure_runtime.sh" --gpu 2 -- -c 'import torch; print(torch.__version__)'
 ```
+
+It forwards the chosen runtime as `CTOPD_RUNTIME_PREFIX` and the shared data root
+as `CTOPD_ROOT` to the child process. It cannot change the parent shell; using the
+forwarded command avoids manually exporting a prefix. From the source checkout:
+
+```bash
+bash ensure_runtime.sh --gpu 2 -- -m tools.h1b.exact_strprob --help
+CUDA_VISIBLE_DEVICES=2 python3 tools/launch_single_b200.py --algorithm h1b-c --run-id h1b-c-s42
+```
+
+The standard launcher now selects and ensures the runtime itself before training;
+no separate setup command or `--runtime` is required. It checks model/data/output
+paths and committed source first. Its `--dry-run` remains read-only and never
+extracts or probes a GPU. The separate H1b canary launcher uses the same policy.
 
 This is a fresh implementation for CTOPD's CUDA 12.9 bundle. The historical GOLD/SimCT helper used different CUDA 13 prefixes and a destructive repair fallback; those paths and that fallback are not copied into CTOPD. Live installation on the company node has not been executed from this chat. Offline archive-fixture tests and Bash syntax checks are separate from the real node readiness result.
 
 ## Use source without rebuilding dependencies
 
-Once installed, point `RUNTIME` at the actual extracted prefix and run source from this checkout:
+Run source from this checkout through the same automatic entry point:
 
 ```bash
 cd /absolute/path/to/ctopd
-RUNTIME="${CTOPD_RUNTIME_PREFIX:-/opt/ctopd-b200}"
 export PYTHONPATH="$PWD${PYTHONPATH:+:$PYTHONPATH}"
-bash "$RUNTIME/python-b200.sh" -m kdflow.cli.train_kd_on_policy --help
+bash ensure_runtime.sh -- -m kdflow.cli.train_kd_on_policy --help
 ```
 
 The CLI imports CUDA dependencies and should be checked inside the allocated GPU environment. It is not a CPU-only test. Code/configuration edits do not require rebuilding dependencies; requalify runtime changes that affect CUDA, Torch, native extensions or ABI compatibility.
