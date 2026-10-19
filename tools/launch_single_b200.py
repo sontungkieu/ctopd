@@ -153,6 +153,13 @@ print(json.dumps({'gpu': name, 'torch': torch.__version__, 'cuda': torch.version
         env=env, text=True)
     plan['source_commit'] = commit
     plan['preflight'] = json.loads(result.strip().splitlines()[-1])
+    runtime_receipt = pathlib.Path(plan['runtime']) / '.ctopd-runtime.json'
+    identity = json.loads(runtime_receipt.read_text()) if runtime_receipt.is_file() else {}
+    plan['installed_runtime_identity'] = {
+        'archive_sha256': identity.get('archive_sha256'),
+        'compatibility_overlay_sha256': identity.get('compatibility_overlay', {}).get('sha256'),
+        'receipt_present': runtime_receipt.is_file(),
+    }
     plan['input_sha256'] = {}
     for key in ['train_dataset_path', 'eval_math_dataset_path']:
         path = pathlib.Path(plan['flags'][key])

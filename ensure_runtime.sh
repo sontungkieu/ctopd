@@ -30,6 +30,10 @@ EXPECTED_SHA = '084c321c0b7af1cd3a36d12a595c623567d4a37525aa0eecbc3933aa7f9b15c3
 EXPECTED_BYTES = 16515065867
 MIN_FREE_BYTES = 45 * 1024**3
 RECEIPT = '.ctopd-runtime.json'
+# Filled from the independently qualified compatibility artifact before publication.
+COMPAT_SHA = '21cc38ecdfc2f61714922127b67f3a0be89bf70bb2178b8fda8d3659e14f76c7'
+COMPAT_BYTES = 30628766
+COMPAT_REVISION = '3b1d90bc044874dc20c65308ec72841fc3db22e9'
 
 
 def digest(path):
@@ -42,10 +46,78 @@ def digest(path):
 
 def check_host():
     libc, version = platform.libc_ver()
-    if libc != 'glibc' or tuple(map(int, version.split('.')[:2])) < (2, 39):
-        raise RuntimeError('Need glibc >= 2.39 (Ubuntu 24.04 baseline); change pod image, not system libc')
+    parsed = tuple(map(int, version.split('.')[:2])) if libc == 'glibc' else (0, 0)
+    if parsed < (2, 35):
+        raise RuntimeError('Supported baselines: Ubuntu 22.04/glibc 2.35 and Ubuntu 24.04/glibc 2.39; do not replace system libc')
     if not shutil.which('g++'):
         raise RuntimeError('Host g++ is required for runtime JIT; use a prepared node image')
+    return parsed
+
+
+def compatibility_overlay(root):
+    if not COMPAT_SHA or not COMPAT_BYTES or not COMPAT_REVISION:
+        raise RuntimeError('glibc 2.35 requires the qualified ABI overlay; this helper has no published overlay pin yet')
+    path = root / 'compat/glibc235-v2/overlay.tar.gz'
+    if path.is_file() and path.stat().st_size == COMPAT_BYTES and digest(path) == COMPAT_SHA:
+        return path
+    if path.exists():
+        raise RuntimeError('Existing ABI overlay differs from the pinned checksum; preserved: ' + str(path))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix='.overlay-download-', dir=path.parent)
+    os.close(fd)
+    temporary = pathlib.Path(name)
+    url = ('https://huggingface.co/datasets/codemaivanngu/cross-tokenizer-opd-b200-runtime/resolve/'
+           + COMPAT_REVISION + '/compat/glibc235-v2/overlay.tar.gz')
+    proxy = (os.environ.get('CTOPD_PROXY') or os.environ.get('HTTPS_PROXY') or os.environ.get('https_proxy')
+             or os.environ.get('HTTP_PROXY') or 'http://10.30.154.118:80')
+    command = ['curl', '-fL', '--retry', '3', url, '-o', str(temporary)]
+    if proxy.lower() != 'direct':
+        command += ['--proxy', proxy, '--noproxy', '']
+    else:
+        command += ['--noproxy', '*']
+    try:
+        print('DOWNLOADING_ABI_OVERLAY_BYTES=' + str(COMPAT_BYTES), flush=True)
+        subprocess.run(command, check=True)
+        if temporary.stat().st_size != COMPAT_BYTES or digest(temporary) != COMPAT_SHA:
+            raise RuntimeError('Downloaded ABI overlay size/SHA-256 mismatch')
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+    return path
+
+
+def apply_overlay(stage, archive):
+    if archive.stat().st_size != COMPAT_BYTES or digest(archive) != COMPAT_SHA:
+        raise RuntimeError('ABI overlay checksum mismatch')
+    disabled = stage / 'host-libs-v4-disabled'
+    if disabled.exists():
+        raise FileExistsError(disabled)
+    (stage / 'host-libs').rename(disabled)
+    with tarfile.open(archive, 'r:gz') as bundle:
+        for original in bundle:
+            path = pathlib.PurePosixPath(original.name)
+            if path.is_absolute() or '..' in path.parts or path.parts[:2] != ('opt', 'ctopd-b200'):
+                raise ValueError('Unexpected ABI overlay member: ' + str(path))
+            if len(path.parts) == 2:
+                continue
+            relative = pathlib.PurePosixPath(*path.parts[2:])
+            allowed = (relative.parts[0] == 'host-libs' or str(relative) == 'glibc235-overlay-manifest.json'
+                or (relative.parts[:2] == ('site-packages', 'sglang_router')
+                    and (str(relative).endswith('.py') or str(relative) == 'site-packages/sglang_router/sglang_router_rs.abi3.so'))
+                or relative.parts[:2] == ('site-packages', 'sglang_router.libs'))
+            if not allowed or not (original.isfile() or original.isdir()):
+                raise ValueError('Disallowed ABI overlay member: ' + str(path))
+            member = copy.copy(original)
+            member.name = str(relative)
+            bundle.extract(member, stage, filter='data')
+    manifest = json.loads((stage / 'glibc235-overlay-manifest.json').read_text())
+    if manifest['base_archive_sha256'] != EXPECTED_SHA or manifest['minimum_glibc'] != '2.35':
+        raise RuntimeError('ABI overlay targets a different base runtime')
+    for row in manifest['files']:
+        relative = pathlib.PurePosixPath(row['path'])
+        if relative.is_absolute() or '..' in relative.parts or digest(stage / relative) != row['sha256']:
+            raise RuntimeError('ABI overlay payload integrity mismatch')
+    return {'sha256': COMPAT_SHA, 'files': manifest['files'], 'minimum_glibc': '2.35'}
 
 
 def fingerprints(prefix):
@@ -59,7 +131,7 @@ def fingerprints(prefix):
     return {str(path.relative_to(prefix)): digest(path) for path in paths}
 
 
-def restore(archive, prefix):
+def restore(archive, prefix, overlay=None):
     if not hasattr(tarfile, 'data_filter'):
         raise RuntimeError('System Python needs safe tar extraction filters (Python 3.12 or patched 3.10/3.11)')
     if archive.stat().st_size != EXPECTED_BYTES or digest(archive) != EXPECTED_SHA:
@@ -85,9 +157,12 @@ def restore(archive, prefix):
                         raise ValueError('Unsafe hardlink: ' + member.linkname)
                     member.linkname = str(pathlib.PurePosixPath(*link.parts[2:]))
                 bundle.extract(member, stage, filter='data')
+        compat = apply_overlay(stage, overlay) if overlay else None
         receipt = {'archive_sha256': EXPECTED_SHA, 'archive_bytes': EXPECTED_BYTES,
                    'installed_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
                    'critical_files_sha256': fingerprints(stage)}
+        if compat:
+            receipt['compatibility_overlay'] = compat
         (stage / RECEIPT).write_text(json.dumps(receipt, indent=2) + '\n')
         if prefix.exists() or prefix.is_symlink():
             raise FileExistsError(prefix)
@@ -102,13 +177,13 @@ import torch
 assert torch.cuda.device_count() == 1, 'Expose exactly the B200 allocated to this check'
 assert 'B200' in torch.cuda.get_device_name(0), 'Expected a B200'
 expected = {'torch': '2.11.0+cu129', 'transformers': '5.6.2', 'sglang': '0.5.12.post1',
-            'flash-attn': '2.8.3', 'flashinfer-python': '0.6.11.post1'}
+            'flash-attn': '2.8.3', 'flashinfer-python': '0.6.11.post1', 'sglang-router': '0.3.2'}
 versions = {name: md.version(name) for name in expected}
 assert versions == expected, ('Runtime package mismatch', versions)
 assert sys.version_info[:3] == (3, 12, 12), sys.version
 cuda = pathlib.Path(os.environ['CUDA_HOME'])
 assert (cuda / 'include/nvrtc.h').is_file(), 'Missing NVRTC headers'
-for name in ['transformers', 'sglang.srt.entrypoints.engine', 'flash_attn', 'flashinfer']:
+for name in ['transformers', 'sglang.srt.entrypoints.engine', 'sglang_router.launch_router', 'flash_attn', 'flashinfer']:
     importlib.import_module(name)
 assert torch.version.cuda == '12.9', torch.version.cuda
 value = torch.tensor([1.0], device='cuda')
@@ -140,7 +215,8 @@ def main(argv=None):
     prefix = raw.resolve()
     if len(prefix.parts) < 3 or prefix == args.root.expanduser().resolve():
         raise ValueError('Refusing an unsafe runtime prefix: ' + str(prefix))
-    check_host()
+    host_glibc = check_host()
+    needs_compat = host_glibc < (2, 39)
     if args.check_only and not prefix.exists():
         raise FileNotFoundError('Runtime is absent; run without --check-only to restore it')
     prefix.parent.mkdir(parents=True, exist_ok=True)
@@ -156,6 +232,14 @@ def main(argv=None):
             receipt = json.loads((prefix / RECEIPT).read_text())
             if receipt.get('archive_sha256') != EXPECTED_SHA or receipt.get('critical_files_sha256') != fingerprints(prefix):
                 raise RuntimeError('Existing runtime identity/integrity check failed; preserved without replacement')
+            compat = receipt.get('compatibility_overlay')
+            if needs_compat and (not compat or compat.get('sha256') != COMPAT_SHA):
+                raise RuntimeError('Existing v4 runtime is not glibc-2.35 compatible; preserved. Choose a fresh --prefix for the qualified ABI overlay')
+            if compat:
+                for row in compat['files']:
+                    relative = pathlib.PurePosixPath(row['path'])
+                    if relative.is_absolute() or '..' in relative.parts or digest(prefix / relative) != row['sha256']:
+                        raise RuntimeError('Installed ABI overlay integrity mismatch; preserved without replacement')
             print('REUSING_RUNTIME=' + str(prefix), flush=True)
         else:
             if args.check_only:
@@ -165,7 +249,8 @@ def main(argv=None):
             archive = args.archive.expanduser().resolve() if args.archive else next((p for p in candidates if p.is_file()), None)
             if archive is None or not archive.is_file():
                 raise FileNotFoundError('No runtime.tar.gz in ' + str(root) + '; download once to shared storage or pass --archive')
-            restore(archive, prefix)
+            overlay = compatibility_overlay(root) if needs_compat else None
+            restore(archive, prefix, overlay)
         if args.install_only:
             print('RUNTIME_INSTALLED_UNCHECKED=' + str(prefix), flush=True)
         else:

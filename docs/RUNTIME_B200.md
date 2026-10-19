@@ -7,7 +7,7 @@ Runtime mirror: https://huggingface.co/datasets/codemaivanngu/cross-tokenizer-op
 - Archive: `ctopd-b200-cu129-v4/runtime.tar.gz`, 16,515,065,867 bytes.
 - SHA-256: `084c321c0b7af1cd3a36d12a595c623567d4a37525aa0eecbc3933aa7f9b15c3`.
 
-Download/install directly on the target host using the pinned HF instructions. The archive requires Linux x86_64, glibc >= 2.39, g++ for JIT, and a B200 driver compatible with CUDA 12.9. Allow about 35 GiB free for parallel download/assembly or 60 GiB including installation. Model weights and datasets are separate.
+Download/install directly on the target host using the pinned HF instructions. Required targets are Ubuntu 22.04/glibc 2.35 and Ubuntu 24.04/glibc 2.39, Linux x86_64, with g++ for JIT and a B200 driver compatible with CUDA 12.9. Ubuntu 22 uses the pinned 30,628,766-byte ABI overlay automatically; Ubuntu 24 retains the original archive. See [compatibility evidence](COMPATIBILITY.md). Allow about 35 GiB free for parallel download/assembly or 60 GiB including installation. Model weights and datasets are separate.
 
 ## Restore/check on every new node
 
@@ -25,25 +25,25 @@ Alternatively, download the same standalone helper through the public HF mirror 
 set -euo pipefail
 cd /workspace/storage-shared/nlp/tungks/ctopd_all
 PROXY="${HTTPS_PROXY:-${HTTP_PROXY:-http://10.30.154.118:80}}"
-BASE=https://huggingface.co/datasets/codemaivanngu/cross-tokenizer-opd-b200-runtime/resolve/b5bbaea5025b8f58ef93386a5a5ac2f37058f51c
+BASE=https://huggingface.co/datasets/codemaivanngu/cross-tokenizer-opd-b200-runtime/resolve/3f6ca2db515415208742f0a1846a761ab361728d
 curl -fL --retry 3 --proxy "$PROXY" --noproxy "" "$BASE/ensure_runtime.sh" -o ensure_runtime.sh
 curl -fL --retry 3 --proxy "$PROXY" --noproxy "" "$BASE/ensure_runtime.SHA256SUMS" -o ensure_runtime.SHA256SUMS
 sha256sum -c ensure_runtime.SHA256SUMS
 bash ensure_runtime.sh
 ```
 
-Published helper SHA-256: `9a388b3ca183e0e771a49bdc4b61d9c6880d043da5490122c8fdf4098c3b9895`. Anonymous HF download was checked against the committed source; this verifies delivery, not execution on the company node.
+Published helper SHA-256: `a09e1c27bd7ee6f2919b49b48d03ff2a3ebb81444aa5f578dc828624f0568bf8`. Anonymous HF download was checked byte-for-byte against the source; this verifies delivery, not execution on the company node.
 
 Run the last line on each new node, inside a pod exposing the one B200 allocated for this check. With no GPU allocated yet, use `--install-only`; it reports `RUNTIME_INSTALLED_UNCHECKED`, not GPU readiness. With an existing runtime, `--check-only` checks without extracting. `--help` lists options.
 
-The helper automatically finds either `$ROOT/ctopd-b200-cu129-v4/runtime.tar.gz` (the manually downloaded shard layout) or `$ROOT/runtime.tar.gz`. It verifies the pinned archive size/SHA-256 before extraction, checks Linux/glibc/g++, extracts safely to a new staging directory under the target filesystem, then renames to the final prefix. Allow at least 45 GiB free on that node-local filesystem. It never downloads dependencies, builds a runtime, launches training, or replaces an existing runtime that it cannot identify. Failed extraction keeps staging evidence. If `/opt` is not writable, choose an explicit node-local location:
+The helper automatically finds either `$ROOT/ctopd-b200-cu129-v4/runtime.tar.gz` (the manually downloaded shard layout) or `$ROOT/runtime.tar.gz`. It verifies the pinned archive size/SHA-256 before extraction, checks Linux/glibc/g++, extracts safely to a new staging directory under the target filesystem, then renames to the final prefix. On glibc 2.35 through 2.38 it downloads the small verified overlay once into `$ROOT/compat/glibc235-v2/`; an existing valid overlay is reused. It uses `CTOPD_PROXY`, existing proxy variables, or the company proxy by default; set `CTOPD_PROXY=direct` for direct access. Allow at least 45 GiB free on that node-local filesystem. It never builds dependencies or launches training. Failed extraction keeps staging evidence. If `/opt` is not writable, choose an explicit node-local location:
 
 ```bash
 export CTOPD_RUNTIME_PREFIX="/var/tmp/ctopd-b200-$UID"
 bash "$ROOT/ensure_runtime.sh"
 ```
 
-Concurrent setup calls use a lock for the same prefix. Reuse checks its archive-identity receipt and hashes of the wrapper, portable Python and nvcc; it does not rehash every installed dependency or reread the 16.5 GB archive. Default readiness additionally verifies the pinned Python/Torch/Transformers/SGLang/FlashAttention/FlashInfer versions, NVRTC headers, imports and a one-element CUDA memory roundtrip on the allocated B200. This is a basic runtime check, not full kernel qualification or a training result. Existing incompatible/unmanaged prefixes are preserved for manual inspection; there is no recursive-delete fallback.
+Concurrent setup calls use a lock for the same prefix. Reuse checks its archive-identity receipt, wrapper/Python/nvcc hashes and every substituted overlay file; it does not reread the 16.5 GB archive. Default readiness additionally verifies pinned package versions (including the router), NVRTC headers, imports and a one-element CUDA memory roundtrip on the allocated B200. This is a basic runtime check, not full kernel qualification or a training result. Existing incompatible/unmanaged prefixes are preserved. An already-installed original v4 on glibc 2.35 requires a fresh explicit node-local `--prefix`; the helper does not modify an active installation in place. There is no recursive-delete fallback.
 
 The script can also execute a Python command after readiness:
 

@@ -6,6 +6,7 @@ import io
 import json
 import pathlib
 import tempfile
+import types
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -22,8 +23,28 @@ class EnsureRuntimeTests(unittest.TestCase):
         self.code = {'__name__': 'ensure_fixture'}
         exec(compile(INLINE, 'ensure_runtime.sh:inline', 'exec'), self.code)
         # Fixture installation only: no real GPU/ML runtime or 45 GiB allocation.
-        self.code['check_host'] = lambda: None
+        self.code['check_host'] = lambda: (2, 39)
         self.code['MIN_FREE_BYTES'] = 0
+
+    def make_overlay(self, forbidden=False):
+        import tarfile
+        self.archive_with({'opt/ctopd-b200/host-libs/old-incompatible.so': b'old-v4-host-library'})
+        self.overlay = self.root / 'compat/glibc235-v2/overlay.tar.gz'
+        self.overlay.parent.mkdir(parents=True)
+        files = {'host-libs/libstdc++.so.6': b'compatible-library',
+                 'site-packages/sglang_router/sglang_router_rs.abi3.so': b'compatible-router'}
+        manifest = {'base_archive_sha256': self.code['EXPECTED_SHA'], 'minimum_glibc': '2.35',
+                    'files': [{'path': path, 'sha256': hashlib.sha256(content).hexdigest()} for path, content in files.items()]}
+        files['glibc235-overlay-manifest.json'] = json.dumps(manifest).encode()
+        if forbidden:
+            files['site-packages/torch/unrequested.py'] = b'forbidden'
+        with tarfile.open(self.overlay, 'w:gz') as bundle:
+            for name, content in files.items():
+                member = tarfile.TarInfo('opt/ctopd-b200/' + name)
+                member.size = len(content)
+                bundle.addfile(member, io.BytesIO(content))
+        self.code.update(COMPAT_SHA=hashlib.sha256(self.overlay.read_bytes()).hexdigest(),
+                         COMPAT_BYTES=self.overlay.stat().st_size, COMPAT_REVISION='fixture')
 
     def tearDown(self):
         self.temp.cleanup()
@@ -51,6 +72,82 @@ class EnsureRuntimeTests(unittest.TestCase):
     def test_inline_and_probe_syntax(self):
         ast.parse(INLINE)
         ast.parse(self.code['PROBE'])
+
+    def test_both_required_host_baselines_and_older_rejection(self):
+        isolated = {'__name__': 'host_test'}
+        exec(compile(INLINE, 'ensure_runtime.sh:inline', 'exec'), isolated)
+        isolated['shutil'] = types.SimpleNamespace(which=lambda _name: '/usr/bin/g++')
+        for version, expected in [('2.35', (2, 35)), ('2.39', (2, 39))]:
+            isolated['platform'] = types.SimpleNamespace(libc_ver=lambda: ('glibc', version))
+            self.assertEqual(isolated['check_host'](), expected)
+        isolated['platform'] = types.SimpleNamespace(libc_ver=lambda: ('glibc', '2.34'))
+        with self.assertRaises(RuntimeError):
+            isolated['check_host']()
+
+    def test_glibc235_does_not_silently_accept_unpatched_v4(self):
+        self.archive_with()
+        self.run_ensure('--install-only')
+        before = (self.prefix / self.code['RECEIPT']).read_bytes()
+        self.code['check_host'] = lambda: (2, 35)
+        with self.assertRaisesRegex(RuntimeError, 'not glibc-2.35 compatible'):
+            self.run_ensure('--install-only')
+        self.assertEqual((self.prefix / self.code['RECEIPT']).read_bytes(), before)
+
+    def test_glibc235_requires_real_pinned_overlay(self):
+        self.archive_with()
+        self.code['check_host'] = lambda: (2, 35)
+        self.code.update(COMPAT_SHA=None, COMPAT_BYTES=None, COMPAT_REVISION=None)
+        with self.assertRaisesRegex(RuntimeError, 'no published overlay pin'):
+            self.run_ensure('--install-only')
+        self.assertFalse(self.prefix.exists())
+
+    def test_overlay_download_verifies_bytes_and_uses_selected_proxy(self):
+        import os
+        self.make_overlay()
+        payload = self.overlay.read_bytes()
+        self.overlay.unlink()
+        for proxy in ['direct', 'http://fixture-proxy:80']:
+            calls = []
+
+            def download(command, **_kwargs):
+                calls.append(command)
+                pathlib.Path(command[command.index('-o') + 1]).write_bytes(payload)
+
+            self.code['os'] = types.SimpleNamespace(environ={'CTOPD_PROXY': proxy}, close=os.close)
+            self.code['subprocess'] = types.SimpleNamespace(run=download)
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(self.code['compatibility_overlay'](self.root), self.overlay)
+            self.assertEqual(self.overlay.read_bytes(), payload)
+            self.assertEqual(calls[0][-2:], ['--noproxy', '*' if proxy == 'direct' else ''])
+            self.assertEqual(list(self.overlay.parent.glob('.overlay-download-*')), [])
+            self.overlay.unlink()
+
+    def test_invalid_cached_overlay_is_preserved(self):
+        self.make_overlay()
+        self.overlay.write_bytes(b'invalid-existing-overlay')
+        with self.assertRaisesRegex(RuntimeError, 'preserved'):
+            self.code['compatibility_overlay'](self.root)
+        self.assertEqual(self.overlay.read_bytes(), b'invalid-existing-overlay')
+
+    def test_glibc235_installs_overlay_and_quarantines_old_host_libraries(self):
+        self.make_overlay()
+        self.code['check_host'] = lambda: (2, 35)
+        self.run_ensure('--install-only')
+        self.assertEqual((self.prefix / 'host-libs/libstdc++.so.6').read_bytes(), b'compatible-library')
+        self.assertEqual((self.prefix / 'host-libs-v4-disabled/old-incompatible.so').read_bytes(), b'old-v4-host-library')
+        receipt = json.loads((self.prefix / self.code['RECEIPT']).read_text())
+        self.assertEqual(receipt['compatibility_overlay']['sha256'], self.code['COMPAT_SHA'])
+        self.overlay.unlink()
+        self.archive.unlink()
+        self.assertIn('REUSING_RUNTIME=', self.run_ensure('--install-only'))
+
+    def test_overlay_cannot_modify_training_package(self):
+        self.make_overlay(forbidden=True)
+        self.code['check_host'] = lambda: (2, 35)
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaisesRegex(ValueError, 'Disallowed ABI overlay member'):
+                self.run_ensure('--install-only')
+        self.assertFalse(self.prefix.exists())
 
     def test_install_and_reuse_without_archive(self):
         self.archive_with()

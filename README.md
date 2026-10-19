@@ -8,7 +8,7 @@ Start editing directly in `kdflow/algorithms/`, `kdflow/token_alignment.py`, `kd
 
 Use the existing [qualified B200 runtime on Hugging Face](https://huggingface.co/datasets/codemaivanngu/cross-tokenizer-opd-b200-runtime) with a source overlay rather than reinstalling dependencies after each code edit. See [B200 development instructions](docs/RUNTIME_B200.md).
 
-On a new company node, run the standalone `ensure_runtime.sh`: it restores the pinned shared archive into node-local `/opt/ctopd-b200` if absent, otherwise checks and reuses the existing installation. It preserves unknown/broken installations, uses no `pip`, and starts no training. See the instructions for shared-path placement, GPU visibility, and `--install-only` before allocation.
+On a new company node, run the standalone `ensure_runtime.sh`: it restores the pinned shared archive into node-local `/opt/ctopd-b200` if absent, otherwise checks and reuses the existing installation. Ubuntu 22.04/glibc 2.35 automatically uses a verified 30.6 MB compatibility overlay; Ubuntu 24.04/glibc 2.39 retains the original runtime. It preserves unknown/broken installations, uses no `pip`, and starts no training. See [compatibility requirements and evidence](docs/COMPATIBILITY.md) and the runtime instructions for shared-path placement, GPU visibility, and `--install-only` before allocation.
 
 For a full-workload, one-run-per-B200 adaptation, use [the single-B200 launcher](docs/SINGLE_B200.md). It keeps 512-response rollout/optimizer batches, 8,192 generated tokens, 100 training iterations and 32-sample MATH500 evaluation. There is no reduced-workload mode. Single-B200 full training and paper metric agreement remain unvalidated.
 
