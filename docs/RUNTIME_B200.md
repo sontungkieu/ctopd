@@ -25,14 +25,14 @@ Alternatively, download the same standalone helper through the public HF mirror 
 set -euo pipefail
 cd /workspace/storage-shared/nlp/tungks/ctopd_all
 PROXY="${HTTPS_PROXY:-${HTTP_PROXY:-http://10.30.154.118:80}}"
-BASE=https://huggingface.co/datasets/codemaivanngu/cross-tokenizer-opd-b200-runtime/resolve/3f6ca2db515415208742f0a1846a761ab361728d
+BASE=https://huggingface.co/datasets/codemaivanngu/cross-tokenizer-opd-b200-runtime/resolve/4f12864097bb6f1092d27bf41d9e8a6357dcf2af
 curl -fL --retry 3 --proxy "$PROXY" --noproxy "" "$BASE/ensure_runtime.sh" -o ensure_runtime.sh
 curl -fL --retry 3 --proxy "$PROXY" --noproxy "" "$BASE/ensure_runtime.SHA256SUMS" -o ensure_runtime.SHA256SUMS
 sha256sum -c ensure_runtime.SHA256SUMS
 bash ensure_runtime.sh
 ```
 
-Published helper SHA-256: `a09e1c27bd7ee6f2919b49b48d03ff2a3ebb81444aa5f578dc828624f0568bf8`. Anonymous HF download was checked byte-for-byte against the source; this verifies delivery, not execution on the company node.
+Published helper SHA-256: `5274a6bae10ae5e83fa89550087dd4e901483375e779d2725832929f020529de`. Anonymous HF download was checked byte-for-byte against the source; this verifies delivery, not execution on the company node.
 
 Run the last line on each new node, inside a pod exposing the one B200 allocated for this check. With no GPU allocated yet, use `--install-only`; it reports `RUNTIME_INSTALLED_UNCHECKED`, not GPU readiness. With an existing runtime, `--check-only` checks without extracting. `--help` lists options.
 
