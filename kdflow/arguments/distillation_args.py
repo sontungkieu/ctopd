@@ -1,5 +1,8 @@
 import logging
 from dataclasses import dataclass, field
+import math
+
+from kdflow.mp_opd_modes import MP_OPD_ALGORITHMS
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +23,7 @@ class DistillationArguments:
         default="byte_align_ctkd",
         metadata={
             "help": "KD algorithm for each training step.",
-            "choices": ["simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd"],
+            "choices": ["simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", *MP_OPD_ALGORITHMS],
         }
     )
     kd_loss_fn: str = field(
@@ -108,18 +111,47 @@ class DistillationArguments:
         metadata={"help": "Top-k Ranking for Hierarchical Ranking Loss."}
     )
 
+    # Opt-in MP-OPD namespace. None of these fields changes a Strict mode.
+    mp_opd_fixed_span_length: int = field(default=2)
+    mp_opd_random_min_length: int = field(default=1)
+    mp_opd_random_max_length: int = field(default=2)
+    mp_opd_random_seed: int = field(default=42)
+    mp_opd_chunk_source: str = field(default='xtoken', metadata={'choices': ['xtoken', 'run']})
+    mp_opd_chunk_run_length: int = field(default=2)
+    mp_opd_chunk_straddle: str = field(default='singleton', metadata={'choices': ['singleton', 'majority']})
+    mp_opd_alignment_max_comb_len: int = field(default=4)
+    mp_opd_grass_geometry: str = field(default='exact_head', metadata={'choices': ['exact_head', 'diag']})
+    mp_opd_grass_sigma_rho: float = field(default=0.99)
+    mp_opd_grass_sigma_min_pairs: int = field(default=8)
+    mp_opd_align_eps_h: float = field(default=1e-12)
+
     def __post_init__(self):
         if self.multi_teacher_config is not None:
             raise ValueError(
                 "This release supports one teacher model per run; "
                 "use --teacher_name_or_path instead of --multi_teacher_config."
             )
-        supported_algorithms = {"simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd"}
+        supported_algorithms = {"simple_ctkd", "byte_align_ctkd", "topk_byte_align_ctkd", *MP_OPD_ALGORITHMS}
         if self.kd_algorithm not in supported_algorithms:
             raise ValueError(
                 f"kd_algorithm must be one of {sorted(supported_algorithms)}, "
                 f"got {self.kd_algorithm!r}."
             )
+        if self.kd_algorithm in MP_OPD_ALGORITHMS:
+            if self.kd_ratio != 1.0 or self.kd_temperature != 1.0 or self.kd_loss_fn != 'rkl':
+                raise ValueError('MP-OPD requires kd_ratio=1, kd_temperature=1, kd_loss_fn=rkl')
+            if self.mp_opd_fixed_span_length < 1 or not 1 <= self.mp_opd_random_min_length <= self.mp_opd_random_max_length:
+                raise ValueError('MP-OPD group lengths must be positive and random min <= max')
+            if self.mp_opd_chunk_source not in {'xtoken', 'run'} or self.mp_opd_chunk_straddle not in {'singleton', 'majority'}:
+                raise ValueError('Unsupported MP-OPD chunk source or straddling policy')
+            if self.mp_opd_chunk_run_length < 1 or self.mp_opd_alignment_max_comb_len < 1:
+                raise ValueError('MP-OPD chunk/alignment lengths must be positive')
+            if self.mp_opd_grass_geometry not in {'exact_head', 'diag'}:
+                raise ValueError('Unsupported MP-OPD head geometry')
+            if not 0 <= self.mp_opd_grass_sigma_rho < 1 or self.mp_opd_grass_sigma_min_pairs < 1:
+                raise ValueError('Invalid GRASS noise estimator parameters')
+            if not math.isfinite(self.mp_opd_align_eps_h) or self.mp_opd_align_eps_h <= 0:
+                raise ValueError('ALIGN eps_h must be finite and positive')
         # Validate teacher parallel size settings
         if self.teacher_ep_size > self.teacher_tp_size:
             raise ValueError(

@@ -25,7 +25,12 @@ def parser():
                    default=pathlib.Path('/workspace/storage-shared/nlp/tungks/ctopd_all'))
     p.add_argument('--runtime', type=pathlib.Path,
                    help='Installed prefix; default CTOPD_RUNTIME_PREFIX or /opt/ctopd-b200')
-    p.add_argument('--algorithm', choices=['strict-top16', 'strict-full'], default='strict-top16')
+    p.add_argument('--algorithm', choices=['strict-top16', 'strict-full', 'mp-atomic',
+        'mp-fixed1', 'mp-fixed2', 'mp-fixed3', 'mp-fixed4', 'mp-fixed5',
+        'mp-random1-2', 'mp-random2-5', 'mp-grass-chunk', 'mp-align'], default='strict-top16')
+    p.add_argument('--mp-chunk-source', choices=['xtoken', 'run'], default='xtoken')
+    p.add_argument('--mp-chunk-run-length', type=int, default=2)
+    p.add_argument('--mp-geometry', choices=['exact_head', 'diag'], default='exact_head')
     p.add_argument('--seed', type=int, default=42, help='Original launcher default, not a verified paper seed')
     p.add_argument('--micro-batch', type=int, choices=[1, 2, 4], default=4,
                    help='Original launcher uses 4; 1/2 retain global batch through accumulation')
@@ -37,7 +42,7 @@ def parser():
 
 
 def build_plan(args):
-    if args.concurrency < 1 or args.eval_timeout < 0:
+    if args.concurrency < 1 or args.eval_timeout < 0 or args.mp_chunk_run_length < 1:
         raise ValueError('Concurrency must be positive and eval timeout nonnegative')
     run_id = args.run_id or (datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
                              + '-' + args.algorithm + '-s' + str(args.seed))
@@ -75,6 +80,20 @@ def build_plan(args):
         'teacher_mem_fraction_static': 0.6, 'teacher_offload_tags': 'all',
         'chunked_loss_size': 2048, 'use_wandb': False,
     }
+    if args.algorithm.startswith('mp-'):
+        name = args.algorithm[3:]
+        family = 'fixed' if name.startswith('fixed') else 'random' if name.startswith('random') else name.replace('-', '_')
+        flags['kd_algorithm'] = 'mp_opd_' + family
+        if family == 'fixed':
+            flags['mp_opd_fixed_span_length'] = int(name[-1])
+        elif family == 'random':
+            low, high = map(int, name[len('random'):].split('-'))
+            flags.update(mp_opd_random_min_length=low, mp_opd_random_max_length=high,
+                         mp_opd_random_seed=args.seed)
+        if family in {'grass_chunk', 'align'}:
+            flags.update(mp_opd_chunk_source=args.mp_chunk_source,
+                         mp_opd_chunk_run_length=args.mp_chunk_run_length,
+                         mp_opd_grass_geometry=args.mp_geometry)
     command = ['bash', str(runtime / 'python-b200.sh'), '-u', '-m', 'kdflow.cli.train_kd_on_policy']
     for key, value in flags.items():
         command.extend(['--' + key, str(value)])
@@ -82,7 +101,9 @@ def build_plan(args):
             'source': str(SOURCE), 'flags': flags, 'command': command,
             'gradient_accumulation_microsteps': 512 // args.micro_batch,
             'expected_runtime_archive_sha256': ARCHIVE_SHA,
-            'qualification': 'unvalidated single-B200 full workload; no metric-match claim',
+            'qualification': ('experimental MP-OPD source port; no B200/full-training qualification'
+                              if args.algorithm.startswith('mp-') else
+                              'unvalidated single-B200 full workload; no metric-match claim'),
             'evaluation_scope': 'MATH500 accuracy over 32 responses/problem; not the full paper benchmark suite'}
 
 

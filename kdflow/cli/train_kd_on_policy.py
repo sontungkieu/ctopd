@@ -15,12 +15,18 @@ from kdflow.datasets.utils import blending_datasets
 from kdflow.models.utils import check_tokenizer_identical
 from kdflow.backend import get_strategy
 from kdflow.arguments import init_args
+from kdflow.mp_opd_modes import MP_OPD_ALGORITHMS
 from kdflow.arguments.training_args import resolve_max_steps
 from kdflow.utils.distributed_sampler import DistributedSampler
 from kdflow.utils.utils import get_tokenizer, load_custom_eval_fn
 
 
 def train(args):
+    if args.kd.kd_algorithm in MP_OPD_ALGORITHMS and (
+        args.train.num_nodes * args.train.num_gpus_per_node != 1
+        or args.model.ring_attn_size != 1
+    ):
+        raise ValueError('The initial MP-OPD port requires one student rank and ring_attn_size=1')
     # Initialize Ray if not already initialized
     if not ray.is_initialized():
         ray.init(
@@ -85,10 +91,11 @@ def train(args):
         "simple_ctkd",
         "byte_align_ctkd",
         "topk_byte_align_ctkd",
+        *MP_OPD_ALGORITHMS,
     }:
         raise ValueError(
             "Cross-tokenizer distillation supports simple_ctkd, "
-            "byte_align_ctkd, or topk_byte_align_ctkd."
+            "byte_align_ctkd, topk_byte_align_ctkd, or an opt-in mp_opd_* mode."
         )
     
     environment_rollout = bool(args.rollout.alfworld_config)

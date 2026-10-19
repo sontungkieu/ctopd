@@ -239,6 +239,9 @@ class StudentRayActor:
         lm_head = lm_head.to(device).eval()
         lm_head.requires_grad_(False)
         logger.info(f"Loaded lm_head ({weight_key}), shape: {lm_head.weight.shape}")
+        if self.args.kd.kd_algorithm.startswith('mp_opd_'):
+            head_config = getattr(config, 'text_config', None) or config
+            lm_head._mp_opd_softcap = getattr(head_config, 'final_logit_softcapping', None)
         return lm_head
         
     def _prepare_micro_batch(self, batch):

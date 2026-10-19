@@ -55,6 +55,33 @@ class LauncherTests(unittest.TestCase):
         self.assertEqual(plan['flags']['train_batch_size'], 512)
         self.assertEqual(plan['flags']['kd_algorithm'], 'byte_align_ctkd')
 
+    def test_mp_mode_presets_preserve_full_workload(self):
+        baseline = self.plan()['flags']
+        variants = ['mp-atomic', *['mp-fixed' + str(n) for n in range(1, 6)],
+                    'mp-random1-2', 'mp-random2-5', 'mp-grass-chunk', 'mp-align']
+        for name in variants:
+            plan = self.plan('--algorithm', name)
+            self.assertTrue(plan['flags']['kd_algorithm'].startswith('mp_opd_'))
+            for key, value in baseline.items():
+                if key not in {'kd_algorithm'}:
+                    self.assertEqual(plan['flags'][key], value, (name, key))
+            self.assertIn('no B200/full-training qualification', plan['qualification'])
+        for n in range(1, 6):
+            flags = self.plan('--algorithm', 'mp-fixed' + str(n))['flags']
+            self.assertEqual(flags['kd_algorithm'], 'mp_opd_fixed')
+            self.assertEqual(flags['mp_opd_fixed_span_length'], n)
+        for name, interval in [('mp-random1-2', (1, 2)), ('mp-random2-5', (2, 5))]:
+            flags = self.plan('--algorithm', name)['flags']
+            self.assertEqual((flags['mp_opd_random_min_length'], flags['mp_opd_random_max_length']), interval)
+
+    def test_mp_flags_exist_in_argument_dataclasses(self):
+        fields = set()
+        for path in (ROOT / 'kdflow/arguments').glob('*_args.py'):
+            fields |= {node.target.id for node in ast.walk(ast.parse(path.read_text()))
+                       if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name)}
+        for name in ['mp-atomic', 'mp-fixed5', 'mp-random2-5', 'mp-grass-chunk', 'mp-align']:
+            self.assertFalse(set(self.plan('--algorithm', name)['flags']) - fields)
+
     def test_dry_run_creates_no_files(self):
         with tempfile.TemporaryDirectory() as folder:
             destination = pathlib.Path(folder) / 'absent'

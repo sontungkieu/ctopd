@@ -2,6 +2,8 @@
 
 `tools/launch_single_b200.py` prepares the original workload for one exclusively allocated B200. It has no toy/canary workload and does not install packages or download models/data. `--dry-run` prints configuration only; a normal invocation starts the real 100-iteration run, including full MATH500 evaluation at step 0 and every 10 iterations.
 
+Separate experimental MP-OPD presets (Atomic, Fixed1-5, Random1-2/2-5, GRASS-Chunk and ALIGN) are documented in [MP_OPD.md](MP_OPD.md). They retain the workload below but change the objective; they are not Strict reproduction modes. Their CPU checks do not qualify B200/FSDP execution or full-training memory requirements.
+
 ## Preserved training and evaluation settings
 
 | Setting | Value |

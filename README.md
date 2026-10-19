@@ -12,6 +12,11 @@ On a new company node, run the standalone `ensure_runtime.sh`: it restores the p
 
 For a full-workload, one-run-per-B200 adaptation, use [the single-B200 launcher](docs/SINGLE_B200.md). It keeps 512-response rollout/optimizer batches, 8,192 generated tokens, 100 training iterations and 32-sample MATH500 evaluation. There is no reduced-workload mode. Single-B200 full training and paper metric agreement remain unvalidated.
 
+An opt-in [MP-OPD port](docs/MP_OPD.md) adds Atomic, Fixed1–5, Random1–2/2–5,
+GRASS-Chunk and ALIGN as separate modes. The existing Strict algorithm sources
+remain unchanged. The new modes use sampled atom credits rather than Strict KL;
+they have CPU verification, with B200/full training qualification still pending.
+
 ## Original project documentation
 
 This repository provides the implementation and example training scripts for `byte_align_ctkd` and `topk_byte_align_ctkd`.

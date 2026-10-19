@@ -1,0 +1,76 @@
+{
+  "source_repository": "https://github.com/sontungkieu/SimCT",
+  "source_commit": "99096a927a3e4ae92d7a105e89ca7c18a28c810a",
+  "files": [
+    {
+      "source": "kdflow/algorithms/_mp_opd_atoms.py",
+      "sha256": "922818ba3368679ee8665e7b3406c7b465e20242453451e77c7331c6861419b1",
+      "destination": "kdflow/algorithms/_mp_opd_port/_mp_opd_atoms.py",
+      "ported_sha256": "64000b208a3beb34e4d76c8f1d2889b1ca2d95d3e88b580ce82f004750a737e7"
+    },
+    {
+      "source": "kdflow/algorithms/_mp_opd_credit.py",
+      "sha256": "1b13bedd2a0e61cf32474d6c874aa5e4d8c66cf9c52d848e31b151259cea6df0",
+      "destination": "kdflow/algorithms/_mp_opd_port/_mp_opd_credit.py",
+      "ported_sha256": "cc26d6fe2c5b1893077dbbae5d5a311d6134441979926df4dde2be968678f224"
+    },
+    {
+      "source": "kdflow/algorithms/_mp_opd_grass_span.py",
+      "sha256": "bce2f95c6db9e94b4142a903646572a49dc3f4fb0249ef2402d7abeb92209648",
+      "destination": "kdflow/algorithms/_mp_opd_port/_mp_opd_grass_span.py",
+      "ported_sha256": "524bd57bf3726552af3c997e99eea38a821f33aaac584943d1b81356f26b88c8"
+    },
+    {
+      "source": "kdflow/algorithms/_mp_opd_grass_chunk.py",
+      "sha256": "97a8495d68da45c05aa87ba8d87fe6db6dd520cb15de4352cb2ea0e927ddb076",
+      "destination": "kdflow/algorithms/_mp_opd_port/_mp_opd_grass_chunk.py",
+      "ported_sha256": "97a8495d68da45c05aa87ba8d87fe6db6dd520cb15de4352cb2ea0e927ddb076"
+    },
+    {
+      "source": "kdflow/algorithms/_mp_opd_align.py",
+      "sha256": "c6c0286c74215a8d30888c15b2bb5820ab77f54a45afd832db99ca6eb81cf1e0",
+      "destination": "kdflow/algorithms/_mp_opd_port/_mp_opd_align.py",
+      "ported_sha256": "c6c0286c74215a8d30888c15b2bb5820ab77f54a45afd832db99ca6eb81cf1e0"
+    },
+    {
+      "source": "kdflow/fused_logprob.py",
+      "sha256": "48a49eb79bff5692d06388cfc5ac4881dede691a21383016de4f02f04ebf2099",
+      "destination": "kdflow/algorithms/_mp_opd_port/fused_logprob.py",
+      "ported_sha256": "ec8eb8472188d4705a9d0a534a28bf0d151e954659241d4214b2b4f77c4d8769"
+    },
+    {
+      "source": "experiments/modal/vendor/xtoken_upstream_token_aligner.py",
+      "sha256": "5decb605911f4495e18f5dc4bc59ffafeac3f62554f668478d2094a65e484bc8",
+      "destination": "kdflow/algorithms/_mp_opd_port/xtoken_upstream_token_aligner.py",
+      "ported_sha256": "b3460f323a87614cf5c5fa88042d3eb7edd0a389f830384f7c5ff9abd669deee"
+    }
+  ],
+  "changes": "Line endings normalized to LF; relative fused_logprob imports relocated inside isolated package; numerical kernels otherwise unchanged. NVIDIA Apache-2.0 header retained on TokenAligner.",
+  "strict_baseline_commit": "5cf942ec90bd3e89364e740da12ee8a696b75ee2",
+  "unchanged_strict_files": [
+    {
+      "path": "kdflow/algorithms/simple_ctkd.py",
+      "sha256": "fdbd99c55aeac4d061527158bdfc82a93333a42bf347eceaa134d34f5ef05952"
+    },
+    {
+      "path": "kdflow/algorithms/byte_align_ctkd.py",
+      "sha256": "5c6647c6fb8064ffd5f7b1ed971168cd1f3392caee62e2d75916d41931828e18"
+    },
+    {
+      "path": "kdflow/algorithms/topk_byte_align_ctkd.py",
+      "sha256": "298925da4ce973b0f2917e5ba5ad2adbc4862d7c1a73515c5c86514ac0d22ddb"
+    },
+    {
+      "path": "kdflow/loss/reverse_kl_div.py",
+      "sha256": "abca69fdbe4f7d90a7ca990300189147230cce8f20d589c934d88f0b63c4edf6"
+    },
+    {
+      "path": "kdflow/loss/chunked_loss.py",
+      "sha256": "151c81614f97b908465a952f595abe1f4dc5c0d17cea86431a7068c381125cc5"
+    },
+    {
+      "path": "kdflow/token_alignment.py",
+      "sha256": "c77cd962cb0430cd97ace5312077e847398a03da3ce1473062fd2c5c9808498a"
+    }
+  ]
+}

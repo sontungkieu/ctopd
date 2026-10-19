@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-19",
+  "platform": "WSL Linux, CPU only",
+  "python": "3.12.3",
+  "torch": "2.14.0+cpu",
+  "environment": {
+    "TORCH_COMPILE_DISABLE": "1",
+    "OMP_NUM_THREADS": "1"
+  },
+  "checks": [
+    {
+      "command": "python -m unittest discover -s tests -v",
+      "passed": 43,
+      "skipped": 0,
+      "elapsed_seconds": 90.569
+    },
+    {
+      "command": "PYTHONPATH=$PWD:$PWD/tests python -m unittest test_mp_opd_port.MPPortTests.test_head_precision_setting_is_restored_even_on_exception -v",
+      "passed": 1,
+      "skipped": 0,
+      "elapsed_seconds": 0.039,
+      "reason": "Additional precision-restoration regression added after the full suite started"
+    },
+    {
+      "command": "python3 tools/launch_single_b200.py --algorithm mp-align --mp-chunk-source xtoken --runtime /opt/ctopd-b200-u22 --dry-run",
+      "result": "pass: mp_opd_align, xtoken, batch512, generation8192, steps100; no GPU job"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    }
+  ],
+  "scope": "CPU numerical, gradient, registry, argument, provenance and launcher checks only",
+  "not_qualified": [
+    "B200 execution with the target Torch 2.11 CUDA runtime",
+    "FSDP integration and full-size memory or throughput",
+    "Full-training resume and scientific efficacy"
+  ]
+}
