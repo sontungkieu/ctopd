@@ -17,6 +17,7 @@ the CTOPD launcher. The initial adapter requires one student rank, ring size 1,
 | `mp-random2-5` | `mp_opd_random` | Hard pooling, group length sampled uniformly from [2,5] |
 | `mp-grass-chunk` | `mp_opd_grass_chunk` | Risk-adaptive shrinkage within supplied chunks; no DP |
 | `mp-align` | `mp_opd_align` | Donor ALIGN v1 cyclic coefficient-space PCGrad within the same chunks |
+| `mp-align-new` | `mp_opd_align_new` | Local ALIGN plus full-response head-descent guard; see [ALIGN_NEW.md](ALIGN_NEW.md) |
 
 Fixed/random groups tile each response independently. The final tail may be
 shorter than the requested length/minimum. Randomness uses the configured seed
@@ -51,7 +52,9 @@ vendored tokenizer/string aligner as the donor. This use does not need a learned
 vocabulary projection. `--mp-chunk-source run --mp-chunk-run-length 2` explicitly
 chooses the fixed-run ablation instead. `--mp-geometry diag` is a separate diagonal
 geometry ablation; the default is `exact_head`. ALIGN here is v1 `align`, not
-`align_new` or a full-Transformer/global-descent guard.
+`align_new` or a full-Transformer/global-descent guard. The separately ported
+`mp-align-new` has a full-response **head** guard; it still does not measure the
+full Transformer gradient. The donor does not name these modes v2/v3.
 
 ## Scientific and numerical contract
 

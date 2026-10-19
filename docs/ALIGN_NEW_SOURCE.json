@@ -1,0 +1,71 @@
+{
+  "source_repository": "https://github.com/sontungkieu/SimCT",
+  "source_commit": "529ee4b691732e1040d6a45f05fd12f58def96ec",
+  "local_donor_commit": "99096a927a3e4ae92d7a105e89ca7c18a28c810a",
+  "algorithm": "align_new",
+  "version_inventory": "align v1 and align_new exist; no named v2/v3 found; user confirmed no further versions",
+  "files": [
+    {
+      "sha256": "a3c3e343ded03f4b88a415756558251f6eb08fd639f6997eba9a78c72bcb3c6a",
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_align_new.py"
+    },
+    {
+      "sha256": "be9163ccd7dbdd4e5a5228be7e06ce68f062a290709383c15b934658e0a83d58",
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_head_pair.py"
+    },
+    {
+      "sha256": "a3c3e343ded03f4b88a415756558251f6eb08fd639f6997eba9a78c72bcb3c6a",
+      "path": "tests/fixtures/align_new/_mp_opd_align_new.py.txt"
+    },
+    {
+      "sha256": "be9163ccd7dbdd4e5a5228be7e06ce68f062a290709383c15b934658e0a83d58",
+      "path": "tests/fixtures/align_new/_mp_opd_head_pair.py.txt"
+    },
+    {
+      "sha256": "b5f0d0aeb90c53848cb5b8ad2c91150b3200e8acc60fe1b0e05e7d9642e8c78a",
+      "path": "tests/fixtures/align_new/_align_loss.py.txt"
+    },
+    {
+      "sha256": "2ee28d6e55a868910b8b47193704d6a257b2d2dd17df9691d45724a09cf79e89",
+      "path": "tests/fixtures/align_new/_grass_chunk_assignment.py.txt"
+    }
+  ],
+  "unchanged_existing_files": [
+    {
+      "sha256": "b2387d7f36502dea16c28f4391af4bc97a7e77f367d35dea2867c744e91277a6",
+      "path": "kdflow/algorithms/mp_opd.py"
+    },
+    {
+      "sha256": "d946926dd21fce6041e2fc3b2fd8d317d9dd8e845c5931783e1e6a2bcd70ca89",
+      "path": "kdflow/algorithms/simct.py"
+    },
+    {
+      "sha256": "fdbd99c55aeac4d061527158bdfc82a93333a42bf347eceaa134d34f5ef05952",
+      "path": "kdflow/algorithms/simple_ctkd.py"
+    },
+    {
+      "sha256": "5c6647c6fb8064ffd5f7b1ed971168cd1f3392caee62e2d75916d41931828e18",
+      "path": "kdflow/algorithms/byte_align_ctkd.py"
+    },
+    {
+      "sha256": "298925da4ce973b0f2917e5ba5ad2adbc4862d7c1a73515c5c86514ac0d22ddb",
+      "path": "kdflow/algorithms/topk_byte_align_ctkd.py"
+    },
+    {
+      "sha256": "97a8495d68da45c05aa87ba8d87fe6db6dd520cb15de4352cb2ea0e927ddb076",
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_grass_chunk.py"
+    },
+    {
+      "sha256": "524bd57bf3726552af3c997e99eea38a821f33aaac584943d1b81356f26b88c8",
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_grass_span.py"
+    },
+    {
+      "sha256": "cc26d6fe2c5b1893077dbbae5d5a311d6134441979926df4dde2be968678f224",
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_credit.py"
+    },
+    {
+      "sha256": "c6c0286c74215a8d30888c15b2bb5820ab77f54a45afd832db99ca6eb81cf1e0",
+      "path": "kdflow/algorithms/_mp_opd_port/_mp_opd_align.py"
+    }
+  ]
+}

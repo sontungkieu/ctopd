@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-19",
+  "donor_commit": "529ee4b691732e1040d6a45f05fd12f58def96ec",
+  "platform": "WSL Linux, CPU only",
+  "python": "3.12.3",
+  "torch": "2.14.0+cpu",
+  "command": "TORCH_COMPILE_DISABLE=1 OMP_NUM_THREADS=1 python -m unittest discover -s tests -v",
+  "full_suite": {
+    "passed": 65,
+    "skipped": 0,
+    "elapsed_seconds": 76.884
+  },
+  "align_new_parity": {
+    "cases": 7,
+    "max_loss_abs_error": 0.0,
+    "max_gradient_abs_error": 5.960464477539063e-08,
+    "dtype": "float32",
+    "atol": 1e-6,
+    "rtol": 1e-5,
+    "coverage": "Run/xtoken chunks, final softcap, rho=0/0.1/1, active cross-chunk guard",
+    "oracle": "Donor method bodies plus separately loaded original guard/head-pair copies; frozen source-verified v1 dependencies shared"
+  },
+  "additional_checks": [
+    "Independent autograd full-response head norms and dot, including bias and softcap",
+    "Vocabulary tiling invariance",
+    "CPU BF16 ambient autocast preserves original credit-logit/geometry composition",
+    "Teacher stop-gradient, microbatch normalization, invalid and degenerate geometry",
+    "Existing Strict, author-code SimCT and MP numerical regressions/source hashes",
+    "mp-align-new dry-run retains batch512, steps100, xtoken, exact_head and rho0.1",
+    "git diff --check"
+  ],
+  "not_qualified": [
+    "Target Torch 2.11 CUDA, B200/FSDP integration and full-size memory/throughput",
+    "Full Transformer or Adam descent guarantees",
+    "Scientific efficacy, paper-score reproduction and full training resume"
+  ]
+}

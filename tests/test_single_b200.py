@@ -87,8 +87,19 @@ class LauncherTests(unittest.TestCase):
         for path in (ROOT / 'kdflow/arguments').glob('*_args.py'):
             fields |= {node.target.id for node in ast.walk(ast.parse(path.read_text()))
                        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name)}
-        for name in ['mp-atomic', 'mp-fixed5', 'mp-random2-5', 'mp-grass-chunk', 'mp-align']:
+        for name in ['mp-atomic', 'mp-fixed5', 'mp-random2-5', 'mp-grass-chunk', 'mp-align', 'mp-align-new']:
             self.assertFalse(set(self.plan('--algorithm', name)['flags']) - fields)
+
+    def test_align_new_preset_and_exact_head_guard(self):
+        flags = self.plan('--algorithm', 'mp-align-new')['flags']
+        self.assertEqual(flags['kd_algorithm'], 'mp_opd_align_new')
+        self.assertEqual(flags['mp_opd_align_new_min_descent_fraction'], .1)
+        self.assertEqual(flags['mp_opd_align_new_eps_g'], 1e-12)
+        self.assertEqual(flags['mp_opd_chunk_source'], 'xtoken')
+        for key in ('train_batch_size','rollout_batch_size','max_steps','generate_max_len','eval_steps','eval_math_n_samples'):
+            self.assertEqual(flags[key], self.plan()['flags'][key])
+        with self.assertRaisesRegex(ValueError, 'exact_head'):
+            self.plan('--algorithm','mp-align-new','--mp-geometry','diag')
 
     def test_dry_run_creates_no_files(self):
         with tempfile.TemporaryDirectory() as folder:

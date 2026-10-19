@@ -27,7 +27,7 @@ def parser():
                    help='Installed prefix; default CTOPD_RUNTIME_PREFIX or /opt/ctopd-b200')
     p.add_argument('--algorithm', choices=['strict-top16', 'strict-full', 'simct', 'mp-atomic',
         'mp-fixed1', 'mp-fixed2', 'mp-fixed3', 'mp-fixed4', 'mp-fixed5',
-        'mp-random1-2', 'mp-random2-5', 'mp-grass-chunk', 'mp-align'], default='strict-top16')
+        'mp-random1-2', 'mp-random2-5', 'mp-grass-chunk', 'mp-align', 'mp-align-new'], default='strict-top16')
     p.add_argument('--mp-chunk-source', choices=['xtoken', 'run'], default='xtoken')
     p.add_argument('--mp-chunk-run-length', type=int, default=2)
     p.add_argument('--mp-geometry', choices=['exact_head', 'diag'], default='exact_head')
@@ -42,6 +42,8 @@ def parser():
 
 
 def build_plan(args):
+    if args.algorithm == 'mp-align-new' and args.mp_geometry != 'exact_head':
+        raise ValueError('ALIGN-NEW requires exact_head geometry')
     if args.concurrency < 1 or args.eval_timeout < 0 or args.mp_chunk_run_length < 1:
         raise ValueError('Concurrency must be positive and eval timeout nonnegative')
     run_id = args.run_id or (datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
@@ -92,10 +94,12 @@ def build_plan(args):
             low, high = map(int, name[len('random'):].split('-'))
             flags.update(mp_opd_random_min_length=low, mp_opd_random_max_length=high,
                          mp_opd_random_seed=args.seed)
-        if family in {'grass_chunk', 'align'}:
+        if family in {'grass_chunk', 'align', 'align_new'}:
             flags.update(mp_opd_chunk_source=args.mp_chunk_source,
                          mp_opd_chunk_run_length=args.mp_chunk_run_length,
                          mp_opd_grass_geometry=args.mp_geometry)
+        if family == 'align_new':
+            flags.update(mp_opd_align_new_min_descent_fraction=0.1, mp_opd_align_new_eps_g=1e-12)
     command = ['bash', str(runtime / 'python-b200.sh'), '-u', '-m', 'kdflow.cli.train_kd_on_policy']
     for key, value in flags.items():
         command.extend(['--' + key, str(value)])

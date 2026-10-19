@@ -6,6 +6,8 @@ Separate experimental MP-OPD presets (Atomic, Fixed1-5, Random1-2/2-5, GRASS-Chu
 
 The separate [SimCT author-code preset](SIMCT.md), `--algorithm simct`, uses the same common workload. It adds no SFT warmup; it is not the original SimCT end-to-end recipe.
 
+The separate [ALIGN-NEW preset](ALIGN_NEW.md), `--algorithm mp-align-new`, uses the same workload with the donor's full-response head guard. It requires exact-head geometry and adds no GPU/full-training qualification.
+
 ## Preserved training and evaluation settings
 
 | Setting | Value |

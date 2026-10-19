@@ -127,6 +127,8 @@ class DistillationArguments:
     mp_opd_grass_sigma_rho: float = field(default=0.99)
     mp_opd_grass_sigma_min_pairs: int = field(default=8)
     mp_opd_align_eps_h: float = field(default=1e-12)
+    mp_opd_align_new_min_descent_fraction: float = field(default=0.1)
+    mp_opd_align_new_eps_g: float = field(default=1e-12)
 
     def __post_init__(self):
         if self.multi_teacher_config is not None:
@@ -146,6 +148,13 @@ class DistillationArguments:
             if not math.isfinite(self.simct_gh_mask_threshold) or self.simct_gh_mask_threshold < 0:
                 raise ValueError('SimCT G(h) threshold must be finite and nonnegative')
         if self.kd_algorithm in MP_OPD_ALGORITHMS:
+            if self.kd_algorithm == 'mp_opd_align_new':
+                if self.mp_opd_grass_geometry != 'exact_head':
+                    raise ValueError('ALIGN-NEW requires exact_head geometry')
+                if not math.isfinite(self.mp_opd_align_new_min_descent_fraction) or not 0 <= self.mp_opd_align_new_min_descent_fraction <= 1:
+                    raise ValueError('ALIGN-NEW minimum descent fraction must be in [0,1]')
+                if not math.isfinite(self.mp_opd_align_new_eps_g) or self.mp_opd_align_new_eps_g < 0:
+                    raise ValueError('ALIGN-NEW eps_g must be finite and nonnegative')
             if self.kd_ratio != 1.0 or self.kd_temperature != 1.0 or self.kd_loss_fn != 'rkl':
                 raise ValueError('MP-OPD requires kd_ratio=1, kd_temperature=1, kd_loss_fn=rkl')
             if self.mp_opd_fixed_span_length < 1 or not 1 <= self.mp_opd_random_min_length <= self.mp_opd_random_max_length:

@@ -1,0 +1,114 @@
+def _align_loss(
+        self,
+        credits,
+        atoms,
+        *,
+        student_logits: torch.Tensor | None,
+        student_labels: torch.Tensor | None,
+        student_hidden: torch.Tensor | None,
+        student_ids: list[int] | None = None,
+        teacher_ids: list[int] | None = None,
+    ):
+        """ALIGN: remove negative pairwise interference inside alignment chunks.
+
+        The chunk boundaries, the exact LM-head Gram and the credits themselves are
+        the GRASS-Chunk ones, reused unchanged, so the only difference between the
+        two modes is what happens to the credit after it leaves the atomizer. Here
+        nothing is shrunk and nothing is pooled: a PCGrad projection is applied in
+        coefficient space, and its sum over each chunk becomes the credit the loss
+        consumes. No renormalization follows, because a projection is meant to be
+        measured, and rescaling it would erase the size of what it did.
+        """
+        if student_logits is None or student_labels is None:
+            raise RuntimeError(
+                "mp_opd align mode requires the student logits and labels"
+            )
+        if student_hidden is None:
+            raise RuntimeError(
+                "mp_opd align mode requires the student LM-head hidden states"
+            )
+        if credits.student_token_nll is None:
+            raise RuntimeError(
+                "mp_opd align mode requires per-token student NLL"
+            )
+        if credits.student_token_nll.numel() != student_logits.shape[0]:
+            raise ValueError(
+                "per-token student NLL and student logits disagree on token count"
+            )
+        if self.grass_chunk_source == "xtoken" and (
+            student_ids is None or teacher_ids is None
+        ):
+            raise RuntimeError(
+                "mp_opd grass_chunk_source='xtoken' needs the sampled student and "
+                "teacher token ids for the alignment"
+            )
+
+        atom_ranges = tuple((atom.student_start, atom.student_end) for atom in atoms)
+        covered = atom_ranges[-1][1]
+        assignment = self._grass_chunk_assignment(atoms, student_ids, teacher_ids)
+        partition, _noncontiguous = chunk_partition(assignment)
+        local_precision = (torch.autocast(device_type=student_logits.device.type, enabled=False)
+                           if self.mode == "align_new" else contextlib.nullcontext())
+        with local_precision:
+            head = chunk_head_gram(
+                student_logits[:covered],
+                student_hidden[:covered],
+                student_labels[:covered],
+                atom_ranges,
+                partition,
+                selected_log_prob=-credits.student_token_nll[:covered],
+                softcap=self.grass_softcap,
+                head_bias=self.grass_head_bias,
+                diagonal_only=self.grass_geometry == "diag",
+            )
+            stats = align_chunks(
+                credits.rate,
+                head.gram,
+                partition,
+                eps_h=self.align_eps_h,
+            )
+        effective = stats["rate"].to(credits.rate.dtype)
+        metrics = align_metrics(credits.rate, effective, head.gram, stats)
+        metrics.update(
+            {
+                "mp_opd_align_exact_geometry": credits.rate.new_tensor(
+                    float(self.grass_geometry == "exact_head")
+                ),
+                "mp_opd_align_gram_symmetry_error": credits.rate.new_tensor(
+                    head.symmetry_error
+                ),
+                "mp_opd_align_atom_token_count": credits.rate.new_tensor(
+                    float(head.token_count)
+                ),
+                "mp_opd_align_softcap": credits.rate.new_tensor(
+                    float(self.grass_softcap or 0.0)
+                ),
+                "mp_opd_align_head_bias": credits.rate.new_tensor(
+                    float(self.grass_head_bias)
+                ),
+                "mp_opd_align_chunk_source": credits.rate.new_tensor(
+                    float(self.grass_chunk_source == "xtoken")
+                ),
+            }
+        )
+        if self.mode == "align_new":
+            # The block Gram above is valid for LOCAL surgery only. These two
+            # explicit summed head updates include ALL cross-chunk terms.
+            pair = head_pair_geometry(
+                student_logits[:covered], student_hidden[:covered],
+                student_labels[:covered], atom_ranges, credits.rate, effective,
+                selected_log_prob=-credits.student_token_nll[:covered],
+                softcap=self.grass_softcap, head_bias=self.grass_head_bias,
+            )
+            effective, global_metrics = align_new_guard(
+                credits.rate, effective, pair.first_norm2, pair.second_norm2, pair.dot,
+                min_descent_fraction=self.align_new_min_descent_fraction,
+                eps_g=self.trust_eps_g,
+            )
+            # Old metric names imply a total update. For the new mode explicitly
+            # tag every old diagnostic as the LOCAL candidate, then add the true
+            # full-response geometry under its own namespace.
+            metrics = {k.replace("mp_opd_align_", "mp_opd_align_new_local_"): v
+                       for k, v in metrics.items()}
+            metrics.update(global_metrics)
+        return soft_partition_loss(credits.current_nll, effective), metrics

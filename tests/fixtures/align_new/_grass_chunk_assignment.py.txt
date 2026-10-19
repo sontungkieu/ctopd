@@ -1,0 +1,19 @@
+def _grass_chunk_assignment(self, atoms, student_ids, teacher_ids):
+        """Map this response's atoms onto the upstream alignment chunks.
+
+        With ``source='xtoken'`` the aligner is run on the same loss-masked token
+        axis the atomizer used, so a chunk boundary and an atom boundary live in
+        the same coordinates and their disagreement is directly measurable.
+        """
+        n = len(atoms)
+        if self.grass_chunk_source == "run":
+            return run_chunk_assignment(n, self.grass_chunk_run_length)
+        alignment = self.grass_aligner.align(
+            torch.tensor([list(student_ids)], dtype=torch.long),
+            torch.tensor([list(teacher_ids)], dtype=torch.long),
+        )
+        token_chunk_ids = alignment.student_chunk_id[0].tolist()
+        atom_ranges = tuple((atom.student_start, atom.student_end) for atom in atoms)
+        return atom_chunk_ids_from_tokens(
+            token_chunk_ids, atom_ranges, policy=self.grass_chunk_straddle
+        )
