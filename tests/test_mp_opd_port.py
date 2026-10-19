@@ -239,11 +239,11 @@ assert not any(k.startswith('probe._mp_opd_port') for k in sys.modules)
         torch.testing.assert_close((effective * weight).sum(), (rate * weight).sum().double())
         self.assertLess(float(residual), 1e-12)
 
-    def test_atomization_mismatch_fails_instead_of_falling_back_to_atomic(self):
+    def test_unsupported_added_token_fails_instead_of_falling_back_to_atomic(self):
         algo, _, _ = self.fixture('mp_opd_align')
         batch = self.batch()
-        batch['tea_input_ids'][0, 1] = 5
-        with self.assertRaisesRegex(ValueError, 'atomization failed'):
+        batch['tea_input_ids'][0, 1] = 7
+        with self.assertRaisesRegex(ValueError, 'unsupported_added_token'):
             algo.training_step(batch)
 
     def test_noise_state_roundtrip_and_mode_guard(self):

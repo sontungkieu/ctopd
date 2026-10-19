@@ -9,6 +9,7 @@ import pathlib
 import sys
 import types
 import unittest
+from mp_opd_source_checks import assert_source_hash
 
 import test_mp_opd_port as fixtures
 
@@ -238,7 +239,7 @@ class AlignNewSourceTests(unittest.TestCase):
     def test_source_hashes_and_unchanged_existing_algorithms(self):
         manifest = json.loads((ROOT / 'docs/ALIGN_NEW_SOURCE.json').read_text())
         for row in manifest['files'] + manifest['unchanged_existing_files']:
-            self.assertEqual(hashlib.sha256((ROOT/row['path']).read_bytes()).hexdigest(), row['sha256'])
+            assert_source_hash(self, ROOT, row)
 
 
 if __name__ == '__main__':

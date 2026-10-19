@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-19",
+  "platform": "WSL Linux, CPU only",
+  "python": "3.12.3",
+  "torch": "2.14.0+cpu",
+  "command": "TORCH_COMPILE_DISABLE=1 OMP_NUM_THREADS=1 python -m unittest discover -s tests -v",
+  "full_suite": {"passed": 83, "skipped": 0, "elapsed_seconds": 80.283},
+  "regressions": [
+    "Mixed replacement response exclusion with correct teacher offsets and original denominator",
+    "Normalization mismatch exclusion and valid-response loss/all student gradient equality across MP modes and ALIGN-NEW",
+    "TRUST-R/B/P replacement and normalization exclusion, B/P full-window calibration, valid-response loss/all student gradient equality",
+    "All-replacement microbatch connected zero loss and backward",
+    "Transient replacement prefix recovery remains accepted",
+    "Unsupported added tokens remain fatal; no Atomic fallback",
+    "Historical source manifests retained with explicit adapter patch hash"
+  ],
+  "unchanged_donor_parity": {
+    "trust_max_loss_abs_error": 0.0,
+    "trust_max_gradient_abs_error": 5.960464477539063e-08,
+    "simct_max_loss_abs_error": 0.0,
+    "simct_max_student_gradient_abs_error": 3.725290298461914e-09
+  },
+  "not_qualified": [
+    "Root cause of observed company generation/retokenization mismatch",
+    "Frequency of excluded responses or effect on scientific comparisons",
+    "B200/FSDP execution of this patch or full training",
+    "Full training resume or unchanged Adam update when an entire window is excluded"
+  ]
+}

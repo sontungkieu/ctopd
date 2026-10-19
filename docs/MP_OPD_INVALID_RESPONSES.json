@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-19",
+  "baseline_commit": "619cff667971e65d8cc9e32cf385eba9978ca479",
+  "path": "kdflow/algorithms/mp_opd.py",
+  "baseline_sha256": "b2387d7f36502dea16c28f4391af4bc97a7e77f367d35dea2867c744e91277a6",
+  "updated_sha256": "f687e45395ed6eb887e27503b7f39895f927e5dfa075e8991dd200cfb78271f1",
+  "policy": "Exclude complete responses with replacement_character, normalization_mismatch or empty_response; preserve common token denominator; count exclusions by reason; all other atomization failures remain fatal",
+  "scope": "MP-OPD family including Fixed/Random/GRASS/ALIGN/ALIGN-NEW/TRUST-R/B/P; author SimCT and simct_paper unchanged",
+  "qualification": "83 CPU tests passed with no skips in 80.283 seconds; no company-node or training qualification"
+}

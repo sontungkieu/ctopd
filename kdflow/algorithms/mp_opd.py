@@ -203,6 +203,8 @@ class MPOnPolicyKD:
         student_labels = micro_batch['stu_input_ids'].roll(-1, dims=1)
         teacher_labels = micro_batch['tea_input_ids'].roll(-1, dims=1)
         total, metrics, responses, atom_count = hidden.sum() * 0.0, {}, 0, 0
+        skipped_replacement = skipped_normalization = skipped_empty = 0
+        skipped_student_tokens = skipped_teacher_tokens = 0
         student_offset = teacher_offset = 0
         for row in range(student_mask.shape[0]):
             sy, ty = student_labels[row][student_mask[row]], teacher_labels[row][teacher_mask[row]]
@@ -213,7 +215,14 @@ class MPOnPolicyKD:
             sid, tid = sy.detach().cpu().tolist(), ty.detach().cpu().tolist()
             atomized = self.atomizer.atomize(sid, tid, sample_id=str(response_seed(0, sid, tid)))
             if not atomized.valid:
-                if atomized.failure_reason == 'empty_response':
+                if atomized.failure_reason in {'empty_response', 'replacement_character', 'normalization_mismatch'}:
+                    # Exclude the whole unalignable response, retaining the shared
+                    # optimizer-window denominator. Never sanitize or relabel tokens.
+                    skipped_replacement += int(atomized.failure_reason == 'replacement_character')
+                    skipped_normalization += int(atomized.failure_reason == 'normalization_mismatch')
+                    skipped_empty += int(atomized.failure_reason == 'empty_response')
+                    skipped_student_tokens += sy.numel()
+                    skipped_teacher_tokens += ty.numel()
                     continue
                 raise ValueError('MP-OPD atomization failed: ' + atomized.failure_reason)
             atoms = atomized.atoms
@@ -248,6 +257,21 @@ class MPOnPolicyKD:
         info = {'train/loss': loss, 'train/kd_loss': loss,
                 'distill/mp_opd_valid_responses': loss.detach().new_tensor(float(responses)),
                 'distill/mp_opd_atoms': loss.detach().new_tensor(float(atom_count))}
+        attempted = student_mask.shape[0]
+        exclusions = {
+            'attempted_responses': attempted,
+            'skipped_replacement_responses': skipped_replacement,
+            'skipped_normalization_responses': skipped_normalization,
+            'skipped_empty_responses': skipped_empty,
+            'skipped_responses': skipped_replacement + skipped_normalization + skipped_empty,
+            'skipped_replacement_fraction': skipped_replacement / max(attempted, 1),
+            'skipped_normalization_fraction': skipped_normalization / max(attempted, 1),
+            'skipped_student_loss_tokens': skipped_student_tokens,
+            'skipped_teacher_loss_tokens': skipped_teacher_tokens,
+            'skipped_student_token_fraction': skipped_student_tokens / max(int(student_mask.sum()), 1),
+        }
+        info.update({'distill/mp_opd_' + key: loss.detach().new_tensor(float(value))
+                     for key, value in exclusions.items()})
         info.update({key: value / max(responses, 1) for key, value in metrics.items()})
         return info
 

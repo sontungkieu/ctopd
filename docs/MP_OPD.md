@@ -88,8 +88,17 @@ linear heads. Token tiles use checkpointed log-prob computation; changing
 still materializes per-response logits and an atom Gram, so long-response GPU
 memory/throughput remain unqualified. No new wheels or native extension are added.
 
-Invalid byte alignment fails with the failure reason, with no automatic fallback.
-Empty content responses produce zero contribution. Singleton alignment chunks
+Complete responses with `replacement_character`, `normalization_mismatch` or
+`empty_response` contribute zero. The adapter never sanitizes/relabels their text
+or substitutes an Atomic loss. All other atomization failures remain fatal.
+The shared optimizer-window token denominator is retained, including excluded
+tokens; remaining responses are not reweighted per microbatch. Exclusion counts,
+reason fractions and excluded token counts are logged under `distill/mp_opd_*`.
+This policy changes the effective training sample distribution and can reduce
+gradient magnitude; inspect exclusions before comparing results. It prevents
+unsafe cross-text scoring but does not repair the source of retokenization mismatch.
+See [INVALID_RESPONSES.md](INVALID_RESPONSES.md) for the policy and qualification.
+Singleton alignment chunks
 leave GRASS/ALIGN unchanged; inspect singleton fractions and coefficient-change
 metrics before claiming an intervention occurred.
 

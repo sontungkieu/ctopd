@@ -16,6 +16,9 @@ An opt-in [MP-OPD port](docs/MP_OPD.md) adds Atomic, Fixed1–5, Random1–2/2�
 GRASS-Chunk and ALIGN as separate modes. The existing Strict algorithm sources
 remain unchanged. The new modes use sampled atom credits rather than Strict KL;
 they have CPU verification, with B200/full training qualification still pending.
+The shared [invalid-response policy](docs/INVALID_RESPONSES.md) excludes complete
+responses whose final decode contains U+FFFD or whose student/teacher bytes differ,
+with exclusion metrics and the original shared token denominator.
 
 The separate [ALIGN-NEW port](docs/ALIGN_NEW.md), `--algorithm mp-align-new`, adds
 the donor's full-response head-descent guard while keeping `mp-align` v1 unchanged.

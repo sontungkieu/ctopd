@@ -7,6 +7,7 @@ import logging
 import pathlib
 import types
 import unittest
+from mp_opd_source_checks import assert_source_hash
 
 import test_mp_opd_port as fixtures
 
@@ -186,7 +187,7 @@ class SimCTSourceTests(unittest.TestCase):
     def test_pinned_sources_and_frozen_existing_modes(self):
         manifest = json.loads((ROOT / 'docs/SIMCT_SOURCE.json').read_text())
         for record in manifest['files'] + manifest['unchanged_existing_files']:
-            self.assertEqual(hashlib.sha256((ROOT / record['path']).read_bytes()).hexdigest(), record['sha256'])
+            assert_source_hash(self, ROOT, record)
         raw = (ROOT / 'tests/fixtures/simct_upstream/span_ctkd.py.txt').read_bytes()
         port = (ROOT / 'kdflow/algorithms/_simct_upstream/span_ctkd.py').read_bytes()
         self.assertEqual(raw.replace(b'from kdflow.algorithms import register_algorithm',
