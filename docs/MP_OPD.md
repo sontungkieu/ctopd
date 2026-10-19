@@ -66,7 +66,8 @@ not the directly enumerated shared-vocabulary KL used by Strict.
 GRASS reuses the corrected donor span-wide distortion, noise estimator and exact
 LM-head Gram. The noise estimator updates per response and excludes adjacency
 across chunk boundaries. Weighted signed credit is checked after dtype conversion;
-an invalid result fails rather than silently switching to Atomic. ALIGN does not
+evaluation uses the stored noise estimate without updating it. An invalid result
+fails rather than silently switching to Atomic. ALIGN does not
 claim credit conservation: its intervention is deterministic direction-conflict
 projection. All geometry is detached. Geometry flags restore process-global FP32
 settings; disabling `MP_OPD_GRASS_EXACT_FP32` is rejected for these two modes.
@@ -116,6 +117,8 @@ softcapping, nontrivial ALIGN projection, native/run chunk backward, source hash
 and existing Strict loss/gradient regression. A Python environment without torch
 skips tensor tests explicitly; it is not a full verification pass.
 
+The checked CPU environment and commands are recorded in
+[MP_OPD_VALIDATION.json](MP_OPD_VALIDATION.json).
 CPU tests establish implementation checks only. B200 execution, FSDP runtime
 integration, full-size memory/throughput, training resume and scientific efficacy
 have not been qualified for the new modes. No training or GPU job is launched by

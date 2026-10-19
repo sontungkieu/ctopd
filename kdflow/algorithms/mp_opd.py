@@ -169,7 +169,8 @@ class MPOnPolicyKD:
                 )
                 from ._mp_opd_port._mp_opd_grass_span import grass_span_ids, grass_credit_residual
                 ids = grass_span_ids(partition, len(atoms), credits.rate.device)
-                self.noise.update(credits.rate, credits.weight, same_group=ids[:-1] == ids[1:])
+                if self.student.training:
+                    self.noise.update(credits.rate, credits.weight, same_group=ids[:-1] == ids[1:])
                 tables = grass_chunk_tables(credits.rate, credits.weight, head.gram,
                                            partition, self.noise.sigma2)
                 effective, _ = apply_chunk_shrinkage(credits.rate, credits.weight, tables)

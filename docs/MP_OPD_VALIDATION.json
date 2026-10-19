@@ -10,16 +10,10 @@
   "checks": [
     {
       "command": "python -m unittest discover -s tests -v",
-      "passed": 43,
+      "passed": 45,
       "skipped": 0,
-      "elapsed_seconds": 90.569
-    },
-    {
-      "command": "PYTHONPATH=$PWD:$PWD/tests python -m unittest test_mp_opd_port.MPPortTests.test_head_precision_setting_is_restored_even_on_exception -v",
-      "passed": 1,
-      "skipped": 0,
-      "elapsed_seconds": 0.039,
-      "reason": "Additional precision-restoration regression added after the full suite started"
+      "elapsed_seconds": 107.747,
+      "includes": "Precision restoration and GRASS evaluation noise-state isolation"
     },
     {
       "command": "python3 tools/launch_single_b200.py --algorithm mp-align --mp-chunk-source xtoken --runtime /opt/ctopd-b200-u22 --dry-run",

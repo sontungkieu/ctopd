@@ -259,6 +259,21 @@ assert not any(k.startswith('probe._mp_opd_port') for k in sys.modules)
         with self.assertRaises(ValueError):
             other.load_state_dict(algo.state_dict())
 
+    def test_grass_evaluation_preserves_noise_state(self):
+        algo, student, _ = self.fixture('mp_opd_grass_chunk')
+        initial = algo.noise.state_dict()
+        algo.training_step(self.batch())
+        trained = algo.noise.state_dict()
+        self.assertNotEqual(initial, trained)
+        student.eval()
+        with torch.no_grad():
+            result = algo.training_step(self.batch())
+        self.assertTrue(torch.isfinite(result['train/loss']))
+        self.assertEqual(trained, algo.noise.state_dict())
+        student.train()
+        algo.training_step(self.batch())
+        self.assertGreater(algo.noise.state_dict()['updates'], trained['updates'])
+
     def test_argument_defaults_and_new_mode_validation(self):
         from kdflow.arguments.distillation_args import DistillationArguments
         legacy = DistillationArguments()
