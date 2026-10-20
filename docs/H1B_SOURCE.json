@@ -52,7 +52,7 @@
     },
     {
       "path": "tools/h1b/common.py",
-      "sha256": "8adf680d9e747e40f2781613a2b53b77f44b58bfe58ac0606c08432de4e05d06"
+      "sha256": "42947a601031445a49d63915ba3e5849cc8172d62fdec256fe9065e0f3596176"
     },
     {
       "path": "tools/h1b/enrich_archive.py",
@@ -88,7 +88,7 @@
     },
     {
       "path": "tests/test_h1b.py",
-      "sha256": "61e61fff4bdf4a8b1dea1c6e9fd97974a34d75b06a1516ce562dfe971b9a2c40"
+      "sha256": "3e9bc8203c5f4fce2ea1bab21815bc184fbd8e972dc6d0b991dfbc6771710ed9"
     }
   ],
   "frozen_strict": [
@@ -125,5 +125,13 @@
     "scope": "Automatic runtime selection/ensure only; H1b numerical algorithm and kernels unchanged",
     "baseline_commit": "2bf0f47109fb9435232d77c1509eba0d894910ea",
     "path": "tools/h1b/canary.py"
+  },
+  "unsupported_special_offline_fix": {
+    "updated_sha256": {
+      "tools/h1b/common.py": "42947a601031445a49d63915ba3e5849cc8172d62fdec256fe9065e0f3596176",
+      "tests/test_h1b.py": "3e9bc8203c5f4fce2ea1bab21815bc184fbd8e972dc6d0b991dfbc6771710ed9"
+    },
+    "date": "2026-10-20",
+    "scope": "Offline row_groups now marks responses containing non-EOS special IDs invalid with reason unsupported_special, using _special_token_ids exactly like the training_step post-filter; previously such responses (e.g. sampled <|reserved_special_token_209|>) crashed exact_strprob in VocabIndex.bytes with KeyError. Numerical kernels and frozen Strict files unchanged"
   }
 }

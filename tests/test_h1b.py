@@ -58,6 +58,25 @@ class H1bTests(unittest.TestCase):
             a=([g.t_idx[0] for g in groups],[g.s_idx[0] for g in groups])
             self.assertEqual(a,align_byte_span_batch_1to1(tea,stu,tok.eos_token,tok.eos_token,codec,codec))
 
+    def test_T9b_row_groups_rejects_unsupported_special_whole_response(self):
+        import torch
+        from tools.h1b.common import row_groups
+        # A sampled reserved special must invalidate the whole response with
+        # reason 'unsupported_special', matching the training_step post-filter,
+        # instead of reaching the byte vocabulary index (KeyError there).
+        class Tok(fixtures.Tokenizer):
+            pieces={0:'<eos>',1:'a',2:'b',7:'<pad>',8:'<rsvd>'}
+            all_special_ids=[0,7,8]
+        tok=Tok()
+        ids=torch.tensor([[1,2,0],[1,8,0]])
+        mask=torch.tensor([[True,True,False],[True,True,False]])
+        batch={'stu_input_ids':ids,'stu_loss_mask':mask,'stu_attn_mask':torch.ones_like(ids),
+               'tea_input_ids':ids.clone(),'tea_loss_mask':mask.clone(),'tea_attn_mask':torch.ones_like(ids)}
+        rows=row_groups(batch,tok,tok)
+        self.assertTrue(rows[0].valid)
+        self.assertFalse(rows[1].valid)
+        self.assertEqual(rows[1].reason,'unsupported_special')
+
     def test_T4_trunk_and_exact_enumeration_with_duplicate_byte_ids(self):
         from kdflow.h1b.vocab_index import VocabIndex
         from kdflow.h1b.strprob import chunk_logprobs

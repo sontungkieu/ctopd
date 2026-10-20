@@ -67,14 +67,32 @@ def tokenize_record(record,student_tok,teacher_tok,assume_shared_prompt=False):
 
 
 def row_groups(batch,student_tok,teacher_tok):
-    from kdflow.token_alignment import get_tokenizer_byte_codec
+    from dataclasses import replace
+    from kdflow.token_alignment import get_tokenizer_byte_codec,_special_token_ids
     from kdflow.h1b.groups import align_byte_span_groups_batch
     rows=[]
     for key,tok in (('tea',teacher_tok),('stu',student_tok)):
         labels=batch[key+'_input_ids'].roll(-1,1)
         rows.append([tok.convert_ids_to_tokens(labels[i][batch[key+'_loss_mask'][i].bool()].tolist()) for i in range(len(labels))])
-    return align_byte_span_groups_batch(*rows,teacher_tok.eos_token,student_tok.eos_token,
+    grouped=align_byte_span_groups_batch(*rows,teacher_tok.eos_token,student_tok.eos_token,
         get_tokenizer_byte_codec(teacher_tok).piece_to_bytes,get_tokenizer_byte_codec(student_tok).piece_to_bytes)
+    # Twin of the H1bSpanCTKD.training_step post-filter: any non-EOS special ID
+    # invalidates the whole response, because the byte vocabulary index has no
+    # entry for specials (e.g. sampled <|reserved_special_token_*|>). Both sites
+    # must use _special_token_ids so the exclusion set can never drift apart.
+    tea_special,stu_special=_special_token_ids(teacher_tok),_special_token_ids(student_tok)
+    tea_eos,stu_eos=teacher_tok.eos_token_id,student_tok.eos_token_id
+    tea_ids=batch['tea_input_ids'].roll(-1,1); stu_ids=batch['stu_input_ids'].roll(-1,1)
+    tea_mask=batch['tea_loss_mask'].bool(); stu_mask=batch['stu_loss_mask'].bool()
+    fixed=[]
+    for i,row in enumerate(grouped):
+        tids=tea_ids[i][tea_mask[i]].tolist(); sids=stu_ids[i][stu_mask[i]].tolist()
+        if (any(t in tea_special and t!=tea_eos for t in tids)
+                or any(s in stu_special and s!=stu_eos for s in sids)):
+            fixed.append(replace(row,groups=(),valid=False,reason='unsupported_special'))
+        else:
+            fixed.append(row)
+    return fixed
 
 
 def forward_hidden(model,batch,prefix):
